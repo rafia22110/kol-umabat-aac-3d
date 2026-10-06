@@ -19,6 +19,10 @@
     "pwa",
     "claymorphism"
   ],
-  "author": "Google Deepmind Antigravity Pair-Programmer",
+  "author": "rafi arganti (rafia22110)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rafia22110/kol-umabat-aac-3d.git"
+  },
   "license": "MIT"
 }
