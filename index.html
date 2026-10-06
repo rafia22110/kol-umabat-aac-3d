@@ -1,0 +1,4178 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>קול ומבט - פלטפורמת תקשורת תומכת וחליפית (AAC 3D)</title>
+  
+  <!-- PWA Manifest & Mobile Meta -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#10ac84">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&family=Heebo:wght@400;500;700;800;900&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      /* Fitzgerald Key Grammatical Colors */
+      --fitz-social: #f368e0;       /* ורוד - חברתי, שאלות, מילות נימוס */
+      --fitz-verb: #10ac84;         /* ירוק - פעלים, פעולות */
+      --fitz-noun: #ff9f43;         /* כתום - שמות עצם, אוכל, חפצים */
+      --fitz-adj: #2e86de;          /* כחול - תיאורים, תחושות */
+      --fitz-person: #feca57;       /* צהוב - אנשים, כינויי גוף */
+      --fitz-place: #5f27cd;        /* סגול - מקומות, פנאי */
+      --fitz-folder: #0abde3;       /* טורקיז - תת-לוח וניווט */
+
+      /* Theme & Claymorphism Base */
+      --bg-app: #f0f4f8;
+      --card-bg: #ffffff;
+      --text-main: #222f3e;
+      --text-muted: #576574;
+      --card-radius: 20px;
+      --shadow-3d: 0 8px 0 rgba(0, 0, 0, 0.12), 0 12px 20px rgba(0, 0, 0, 0.08);
+      --shadow-3d-active: 0 2px 0 rgba(0, 0, 0, 0.12), 0 3px 6px rgba(0, 0, 0, 0.1);
+      --border-clay: 3px solid;
+    }
+
+    /* ערכות נושא ורקעים למנויים (Subscriber Themes & Backgrounds) */
+    body.theme-ocean {
+      --bg-app: #e0f2fe;
+      --text-main: #0c4a6e;
+    }
+    body.theme-mint {
+      --bg-app: #ecfdf5;
+      --text-main: #064e3b;
+    }
+    body.theme-rose {
+      --bg-app: #fdf2f8;
+      --text-main: #831843;
+    }
+    body.theme-wood {
+      --bg-app: #fef3c7;
+      --text-main: #78350f;
+    }
+    body.theme-dark {
+      --bg-app: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --shadow-3d: 0 8px 0 rgba(0, 0, 0, 0.4), 0 12px 20px rgba(0, 0, 0, 0.25);
+    }
+    body.theme-dark .aac-card {
+      background: #1e293b;
+      color: #f8fafc;
+    }
+    body.theme-dark header,
+    body.theme-dark .sentence-strip-container,
+    body.theme-dark .stt-voice-bar,
+    body.theme-dark .breadcrumbs-box,
+    body.theme-dark .category-chip {
+      background: #1e293b;
+      color: #f8fafc;
+      border-color: #334155;
+    }
+    body.theme-dark .text-display-box {
+      background: #064e3b;
+      color: #a7f3d0;
+      border-color: #059669;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Rubik', 'Heebo', 'Nunito', sans-serif;
+      background-color: var(--bg-app);
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      direction: rtl;
+      overscroll-behavior-y: none;
+    }
+
+    body.ltr {
+      direction: ltr;
+      font-family: 'Nunito', 'Rubik', sans-serif;
+    }
+
+    /* פס עליון - Header */
+    header {
+      background: #ffffff;
+      padding: 10px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .brand-logo {
+      font-size: 1.8rem;
+      background: linear-gradient(135deg, #10ac84, #0abde3);
+      border-radius: 14px;
+      padding: 6px 10px;
+      color: white;
+      box-shadow: 0 4px 10px rgba(16, 172, 132, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-titles h1 {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: #222f3e;
+      line-height: 1.1;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-titles .subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* אינדיקטור ומעבר מצב: Me Mode / Profiles Mode */
+    .mode-indicator-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f1f5f9;
+      padding: 4px 10px;
+      border-radius: 14px;
+      border: 2px solid #cbd5e1;
+    }
+
+    .mode-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      transition: all 0.2s ease;
+    }
+
+    .mode-badge.me {
+      background: #e8f8f5;
+      color: #10ac84;
+      border: 1px solid #a3e4d7;
+    }
+
+    .mode-badge.profiles {
+      background: #fef3c7;
+      color: #d97706;
+      border: 1px solid #fde68a;
+    }
+
+    .btn-toggle-mode {
+      background: #ffffff;
+      border: 2px solid #94a3b8;
+      border-radius: 10px;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 3px 0 #64748b;
+      transition: all 0.1s ease;
+    }
+
+    .btn-toggle-mode:active {
+      transform: translateY(3px);
+      box-shadow: none;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* תג מנוי PRO / מנוי מוסדי */
+    .sub-tier-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 12px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      cursor: pointer;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #ffffff;
+      border: none;
+      box-shadow: 0 3px 0 #b45309;
+      transition: all 0.1s ease;
+    }
+
+    .sub-tier-badge:active {
+      transform: translateY(3px);
+      box-shadow: none;
+    }
+
+    .sub-tier-badge.free {
+      background: #f1f5f9;
+      color: #475569;
+      box-shadow: 0 3px 0 #cbd5e1;
+      border: 1px solid #cbd5e1;
+    }
+
+    /* סנכרון ענן */
+    .sync-status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+    }
+
+    .sync-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #10ac84;
+      box-shadow: 0 0 8px #10ac84;
+    }
+
+    .sync-dot.syncing {
+      background: #f39c12;
+      box-shadow: 0 0 8px #f39c12;
+      animation: pulse 1s infinite alternate;
+    }
+
+    .sync-dot.offline {
+      background: #95a5a6;
+      box-shadow: none;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.9); opacity: 0.7; }
+      100% { transform: scale(1.3); opacity: 1; }
+    }
+
+    /* בורר שפות */
+    .lang-switcher {
+      display: flex;
+      gap: 4px;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 7px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      cursor: pointer;
+      color: #64748b;
+      transition: all 0.15s ease;
+    }
+
+    .lang-btn.active {
+      background: #222f3e;
+      color: #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .btn-header {
+      background: #ffffff;
+      border: 2px solid #c8d6e5;
+      padding: 7px 12px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #222f3e;
+      box-shadow: 0 3px 0 #8395a7;
+      transition: all 0.1s ease;
+    }
+
+    .btn-header:active {
+      transform: translateY(3px);
+      box-shadow: none;
+    }
+
+    .btn-header.primary {
+      background: #10ac84;
+      color: white;
+      border-color: #10ac84;
+      box-shadow: 0 3px 0 #0b785d;
+    }
+
+    /* סרגל עריכה מנהלי - מוצג רק במצב פרופילים */
+    .admin-toolbar {
+      background: #fef3c7;
+      border-bottom: 2px solid #fde68a;
+      padding: 8px 20px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    body.mode-profiles .admin-toolbar {
+      display: flex;
+    }
+
+    .admin-profile-select {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #92400e;
+    }
+
+    .admin-select {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid #d97706;
+      font-weight: 700;
+      font-family: inherit;
+      background: #ffffff;
+      outline: none;
+    }
+
+    /* רצועת המשפט (Sentence Strip) */
+    .sentence-strip-container {
+      background: #ffffff;
+      margin: 12px 18px 4px 18px;
+      padding: 12px 16px;
+      border-radius: 20px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.05), inset 0 2px 4px rgba(0,0,0,0.02);
+      border: 3px solid #dfe6e9;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sentence-strip-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .strip-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #576574;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .strip-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-strip {
+      padding: 9px 16px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.1s ease;
+    }
+
+    .btn-speak {
+      background: #10ac84;
+      color: white;
+      box-shadow: 0 4px 0 #0b785d;
+    }
+
+    .btn-speak:active {
+      transform: translateY(4px);
+      box-shadow: none;
+    }
+
+    .btn-backspace {
+      background: #ff9f43;
+      color: white;
+      box-shadow: 0 4px 0 #e67e22;
+    }
+
+    .btn-backspace:active {
+      transform: translateY(4px);
+      box-shadow: none;
+    }
+
+    .btn-clear {
+      background: #ee5253;
+      color: white;
+      box-shadow: 0 4px 0 #c0392b;
+    }
+
+    .btn-clear:active {
+      transform: translateY(4px);
+      box-shadow: none;
+    }
+
+    .sentence-strip-cards {
+      min-height: 110px;
+      background: #f8fafc;
+      border-radius: 14px;
+      border: 2px dashed #b2bec3;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+    }
+
+    .sentence-strip-cards:empty::before {
+      content: attr(data-placeholder);
+      color: #8395a7;
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin: auto;
+    }
+
+    .text-display-box {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #10ac84;
+      background: #e8f8f5;
+      padding: 6px 14px;
+      border-radius: 10px;
+      border: 2px solid #a3e4d7;
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+    }
+
+    /* סרגל אודיו לטקסט (Speech-to-Text / Audio to Text Bar) */
+    .stt-voice-bar {
+      margin: 4px 18px 8px 18px;
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 10px 14px;
+      border: 2px solid #c8d6e5;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .stt-inner {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-stt-mic {
+      background: linear-gradient(135deg, #10ac84, #0abde3);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 14px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 0 #079992;
+      transition: all 0.15s ease;
+    }
+
+    .btn-stt-mic:active {
+      transform: translateY(3px);
+      box-shadow: none;
+    }
+
+    .btn-stt-mic.listening {
+      background: linear-gradient(135deg, #ee5253, #ff7675) !important;
+      box-shadow: 0 4px 0 #c0392b !important;
+      animation: pulseMic 1.2s infinite;
+    }
+
+    @keyframes pulseMic {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+      100% { transform: scale(1); }
+    }
+
+    .stt-input-wrapper {
+      flex: 1;
+      display: flex;
+      gap: 8px;
+      min-width: 250px;
+    }
+
+    .stt-text-input {
+      flex: 1;
+      font-family: inherit;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 2px solid #cbd5e1;
+      font-size: 0.95rem;
+      font-weight: 700;
+      outline: none;
+      background: #f8fafc;
+    }
+
+    .stt-text-input:focus {
+      border-color: #0abde3;
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(10, 189, 227, 0.15);
+    }
+
+    .btn-stt-decode {
+      background: #5f27cd;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #341f97;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-stt-decode:active {
+      transform: translateY(3px);
+      box-shadow: none;
+    }
+
+    .stt-listening-feedback {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #e74c3c;
+      padding: 6px 12px;
+      background: #fdf2f2;
+      border-radius: 10px;
+      border: 1px solid #fecaca;
+    }
+
+    .stt-pulse-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #e74c3c;
+      animation: pulseDot 0.8s infinite alternate;
+    }
+
+    @keyframes pulseDot {
+      from { opacity: 0.3; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1.3); }
+    }
+
+    /* ניווט היררכי בלוחות ותת-לוחות (Breadcrumbs & Navigation) */
+    .board-navigation-bar {
+      margin: 2px 18px 8px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .breadcrumbs-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #ffffff;
+      padding: 7px 14px;
+      border-radius: 12px;
+      border: 2px solid #cbd5e1;
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: #222f3e;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+
+    .breadcrumbs-box .crumb-link {
+      color: #0abde3;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .breadcrumbs-box .crumb-separator {
+      color: #94a3b8;
+    }
+
+    .btn-back-board {
+      background: #0abde3;
+      color: white;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 3px 0 #079992;
+      transition: all 0.1s ease;
+    }
+
+    .btn-back-board:active {
+      transform: translateY(3px);
+      box-shadow: none;
+    }
+
+    /* סינון קטגוריות לפי פיצג'רלד */
+    .categories-bar {
+      margin: 0 18px 10px 18px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+    }
+
+    .category-chip {
+      background: #ffffff;
+      border: 2px solid #dcdde1;
+      padding: 7px 14px;
+      border-radius: 25px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      color: #576574;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      box-shadow: 0 3px 0 #c8d6e5;
+      transition: all 0.15s ease;
+    }
+
+    .category-chip.active {
+      background: #222f3e;
+      color: #ffffff;
+      border-color: #222f3e;
+      box-shadow: 0 3px 0 #101924;
+      transform: translateY(-2px);
+    }
+
+    /* רשת הכרטיסיות התלת-ממדית (Tactile 3D Grid) */
+    .cards-grid-container {
+      flex: 1;
+      padding: 0 18px 24px 18px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 14px;
+      align-content: start;
+    }
+
+    /* כרטיסייה תלת-ממדית (Tactile 3D Card) */
+    .aac-card {
+      position: relative;
+      background: #ffffff;
+      border-radius: var(--card-radius);
+      border: var(--border-clay);
+      padding: 12px 8px 10px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      box-shadow: var(--shadow-3d);
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      touch-action: manipulation;
+      min-height: 135px;
+      overflow: hidden;
+    }
+
+    /* אפקט Hover מוחשי על מחשב */
+    @media (hover: hover) and (pointer: fine) {
+      .aac-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 0 rgba(0, 0, 0, 0.14), 0 16px 24px rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    /* צבעים דקדוקיים */
+    .aac-card.cat-person { border-color: var(--fitz-person); background: linear-gradient(180deg, #fffcf0 0%, #ffffff 100%); }
+    .aac-card.cat-verb { border-color: var(--fitz-verb); background: linear-gradient(180deg, #f0fbf7 0%, #ffffff 100%); }
+    .aac-card.cat-noun { border-color: var(--fitz-noun); background: linear-gradient(180deg, #fff7ed 0%, #ffffff 100%); }
+    .aac-card.cat-adj { border-color: var(--fitz-adj); background: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%); }
+    .aac-card.cat-social { border-color: var(--fitz-social); background: linear-gradient(180deg, #fff0fa 0%, #ffffff 100%); }
+    .aac-card.cat-place { border-color: var(--fitz-place); background: linear-gradient(180deg, #f7f1ff 0%, #ffffff 100%); }
+    .aac-card.cat-folder { border-color: var(--fitz-folder); background: linear-gradient(180deg, #e6f9fd 0%, #ffffff 100%); }
+
+    /* לחיצה פיזית מוחשית */
+    .aac-card:active, .aac-card.pressing {
+      transform: translateY(6px) !important;
+      box-shadow: var(--shadow-3d-active) !important;
+    }
+
+    .aac-card.highlight {
+      outline: 4px solid #ff3838;
+      transform: scale(1.04);
+      z-index: 10;
+    }
+
+    /* מספר קיצור מקשים למחשב */
+    .key-shortcut-badge {
+      position: absolute;
+      top: 5px;
+      right: 6px;
+      background: rgba(34, 47, 62, 0.12);
+      color: #576574;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 4px;
+      display: none;
+    }
+
+    @media (min-width: 900px) {
+      .key-shortcut-badge {
+        display: block;
+      }
+    }
+
+    body.ltr .key-shortcut-badge {
+      right: auto;
+      left: 6px;
+    }
+
+    /* תג תת-לוח */
+    .folder-badge {
+      position: absolute;
+      top: 5px;
+      left: 6px;
+      background: #0abde3;
+      color: white;
+      font-size: 0.68rem;
+      font-weight: 900;
+      padding: 2px 6px;
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    body.ltr .folder-badge {
+      left: auto;
+      right: 6px;
+    }
+
+    /* תג הקלטת קול אישית בכרטיסייה */
+    .voice-badge {
+      position: absolute;
+      bottom: 5px;
+      right: 6px;
+      background: #10ac84;
+      color: white;
+      font-size: 0.72rem;
+      padding: 2px 5px;
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    body.ltr .voice-badge {
+      right: auto;
+      left: 6px;
+    }
+
+    /* פקדי עריכה מהירים על הכרטיסייה במצב פרופילים */
+    .card-admin-actions {
+      position: absolute;
+      top: 5px;
+      right: 6px;
+      display: none;
+      gap: 4px;
+      z-index: 5;
+    }
+
+    body.ltr .card-admin-actions {
+      right: auto;
+      left: 6px;
+    }
+
+    body.mode-profiles .card-admin-actions {
+      display: flex;
+    }
+
+    .btn-card-action {
+      background: rgba(255,255,255,0.9);
+      border: 1px solid #cbd5e1;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      font-size: 0.75rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .btn-card-action:hover {
+      background: #222f3e;
+      color: white;
+    }
+
+    /* איור / תמונה בכרטיסייה */
+    .card-visual {
+      width: 72px;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+      filter: drop-shadow(0 5px 6px rgba(0, 0, 0, 0.12));
+    }
+
+    .card-visual img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 10px;
+    }
+
+    .card-visual .emoji-3d {
+      font-size: 3.2rem;
+      line-height: 1;
+    }
+
+    .card-label {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #222f3e;
+      text-align: center;
+      line-height: 1.15;
+      width: 100%;
+      word-break: break-word;
+    }
+
+    /* כרטיסייה ברצועת המשפט */
+    .sentence-strip-cards .aac-card {
+      min-height: 94px;
+      width: 90px;
+      flex-shrink: 0;
+      padding: 6px 4px;
+      border-radius: 14px;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.1), 0 5px 8px rgba(0,0,0,0.05);
+    }
+
+    .sentence-strip-cards .aac-card .card-visual {
+      width: 48px;
+      height: 48px;
+    }
+
+    .sentence-strip-cards .aac-card .card-visual .emoji-3d {
+      font-size: 2.1rem;
+    }
+
+    .sentence-strip-cards .aac-card .card-label {
+      font-size: 0.9rem;
+    }
+
+    /* כרטיסיית הוספה מהירה במצב עריכה */
+    .aac-card.card-add-placeholder {
+      border: 3px dashed #94a3b8;
+      background: rgba(241, 245, 249, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    body.mode-profiles .aac-card.card-add-placeholder {
+      display: flex;
+    }
+
+    .card-add-placeholder span {
+      font-size: 2.5rem;
+      color: #64748b;
+    }
+
+    .card-add-placeholder p {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: #64748b;
+    }
+
+    /* חלוניות מודאל (Modals) */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-window {
+      background: #ffffff;
+      border-radius: 24px;
+      width: 100%;
+      max-width: 620px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      border: 3px solid #cbd5e1;
+      animation: popModal 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popModal {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-header {
+      background: #f8fafc;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .modal-header h3 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-modal-close {
+      background: #ee5253;
+      color: white;
+      border: none;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      font-weight: 800;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 0 #c0392b;
+    }
+
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+      overflow-x: auto;
+    }
+
+    .modal-tab-btn {
+      background: #f1f5f9;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      cursor: pointer;
+      color: #64748b;
+      white-space: nowrap;
+    }
+
+    .modal-tab-btn.active {
+      background: #10ac84;
+      color: white;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-weight: 800;
+      color: #1e293b;
+      font-size: 0.9rem;
+    }
+
+    .form-input, .form-select {
+      font-family: inherit;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 2px solid #cbd5e1;
+      font-size: 1rem;
+      font-weight: 700;
+      outline: none;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: #10ac84;
+      box-shadow: 0 0 0 3px rgba(16, 172, 132, 0.18);
+    }
+
+    .btn-submit {
+      background: #10ac84;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 14px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #0b785d;
+      margin-top: 6px;
+    }
+
+    .btn-submit:active {
+      transform: translateY(4px);
+      box-shadow: none;
+    }
+
+    /* לוח מקשים להזנת PIN (Me Mode Security Gate) */
+    .pin-display {
+      font-size: 2.2rem;
+      letter-spacing: 12px;
+      text-align: center;
+      background: #f8fafc;
+      padding: 12px;
+      border-radius: 14px;
+      border: 2px solid #cbd5e1;
+      font-weight: 900;
+      color: #1e293b;
+      min-height: 60px;
+    }
+
+    .pin-keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      max-width: 320px;
+      margin: 0 auto;
+    }
+
+    .pin-btn {
+      background: #ffffff;
+      border: 2px solid #cbd5e1;
+      padding: 14px 0;
+      border-radius: 16px;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #1e293b;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #94a3b8;
+      transition: all 0.1s ease;
+    }
+
+    .pin-btn:active {
+      transform: translateY(4px);
+      box-shadow: none;
+    }
+
+    .pin-btn.action {
+      background: #fee2e2;
+      color: #dc2626;
+      border-color: #fca5a5;
+      box-shadow: 0 4px 0 #f87171;
+    }
+
+    .pin-btn.confirm {
+      background: #dcfce7;
+      color: #16a34a;
+      border-color: #86efac;
+      box-shadow: 0 4px 0 #4ade80;
+    }
+
+    /* גריד שיתוף וייצוא */
+    .sharing-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .share-card {
+      background: #f8fafc;
+      padding: 14px;
+      border-radius: 14px;
+      border: 2px solid #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .share-card:hover {
+      background: #e2e8f0;
+      transform: translateY(-2px);
+    }
+
+    .share-card-icon {
+      font-size: 2rem;
+    }
+
+    .share-card h4 {
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: #1e293b;
+    }
+
+    .share-card p {
+      font-size: 0.8rem;
+      color: #64748b;
+      line-height: 1.25;
+    }
+
+    /* תוצאות ספריה מקוונת */
+    .library-results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 10px;
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 6px;
+      background: #f8fafc;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .library-item-card {
+      background: #ffffff;
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 8px 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      gap: 4px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .library-item-card:hover {
+      border-color: #10ac84;
+      transform: translateY(-2px);
+    }
+
+    .library-item-card .lib-emoji {
+      font-size: 2.2rem;
+      line-height: 1;
+    }
+
+    .library-item-card .lib-text {
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-align: center;
+      color: #1e293b;
+    }
+
+    /* כרטיסיות תוכניות מנויים */
+    .plan-card {
+      border: 2px solid #cbd5e1;
+      border-radius: 16px;
+      padding: 14px;
+      background: #f8fafc;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .plan-card:hover, .plan-card.active {
+      border-color: #f59e0b;
+      background: #fffbeb;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+    }
+
+    .plan-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* בורר ערכות רקעים למנויים */
+    .theme-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .theme-swatch {
+      padding: 12px 8px;
+      border-radius: 14px;
+      border: 2px solid #cbd5e1;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 0.85rem;
+      box-shadow: 0 3px 0 rgba(0,0,0,0.1);
+      transition: all 0.1s ease;
+    }
+
+    .theme-swatch:active {
+      transform: translateY(3px);
+      box-shadow: none;
+    }
+
+    .theme-swatch.active {
+      border-color: #10ac84;
+      outline: 3px solid #10ac84;
+    }
+
+    /* קיצורי מקשים למחשב (Desktop Shortcut Bar) */
+    .desktop-shortcuts-bar {
+      background: #ffffff;
+      padding: 6px 18px;
+      display: none;
+      justify-content: center;
+      gap: 16px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #64748b;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    @media (min-width: 900px) {
+      .desktop-shortcuts-bar {
+        display: flex;
+      }
+    }
+
+    .kbd-tag {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      padding: 2px 6px;
+      color: #1e293b;
+      font-weight: 800;
+    }
+
+    /* התראת Toast */
+    #aacToastNotice {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(120px);
+      background: #1e293b;
+      color: #ffffff;
+      padding: 10px 22px;
+      border-radius: 14px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      z-index: 2000;
+      transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      pointer-events: none;
+      border: 2px solid #10ac84;
+    }
+
+    /* עיצוב הדפסה (Hard-Copy Use) לכרטיסיות ולתקשורת פיזית */
+    @media print {
+      header, .admin-toolbar, .sentence-strip-container, .stt-voice-bar, .board-navigation-bar, .categories-bar, .modal-overlay, #aacToastNotice, .card-admin-actions, .card-add-placeholder, .desktop-shortcuts-bar, .key-shortcut-badge {
+        display: none !important;
+      }
+
+      body {
+        background: white !important;
+        padding: 0 !important;
+      }
+
+      .cards-grid-container {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 14px !important;
+        padding: 10px !important;
+      }
+
+      .aac-card {
+        box-shadow: none !important;
+        border: 2px solid #000000 !important;
+        page-break-inside: avoid;
+        min-height: 140px;
+        background: white !important;
+      }
+
+      .aac-card::after {
+        content: "✂ קו גזירה";
+        position: absolute;
+        top: 2px;
+        right: 4px;
+        font-size: 8px;
+        color: #718096;
+      }
+
+      .card-visual {
+        filter: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="mode-me">
+
+  <!-- פס עליון ראשי -->
+  <header>
+    <div class="brand-section" onclick="ui.navigateToBoard('board_main')">
+      <div class="brand-logo">🗣️</div>
+      <div class="brand-titles">
+        <h1 data-i18n="appTitle">קול ומבט • AAC 3D</h1>
+        <div class="subtitle" data-i18n="appSubtitle">תקשורת תומכת וחליפית בענן</div>
+      </div>
+    </div>
+
+    <!-- מצב שימוש: Me Mode מוגן מול Profiles Mode -->
+    <div class="mode-indicator-bar">
+      <div id="modeBadge" class="mode-badge me">
+        <span id="modeIcon">🔒</span>
+        <span id="modeLabel" data-i18n="meModeLabel">מצב מוגן (Me Mode)</span>
+      </div>
+      <button class="btn-toggle-mode" onclick="ui.handleToggleModeClick()">
+        <span id="toggleModeIcon">🔑</span>
+        <span id="toggleModeText" data-i18n="switchToProfiles">ניהול פרופיל</span>
+      </button>
+    </div>
+
+    <!-- פעולות מהירות בראש העמוד -->
+    <div class="header-actions">
+      <!-- תג מנוי משתמש (Free / PRO / School) -->
+      <button id="subTierBadge" class="sub-tier-badge" onclick="ui.openModal('subscriptionModal')" title="ניהול מנוי, רישיונות ורקעים">
+        <span id="subTierIcon">⭐</span>
+        <span id="subTierText">מנוי PRO</span>
+      </button>
+
+      <!-- סטטוס סנכרון ענן -->
+      <div class="sync-status-badge" onclick="ui.openModal('cloudSyncModal')" title="סנכרון ענן בזמן אמת">
+        <div id="syncIndicatorDot" class="sync-dot"></div>
+        <span id="syncStatusText" data-i18n="syncOnline">מסונכרן לענן</span>
+      </div>
+
+      <!-- בורר שפות: עברית, אנגלית, ספרדית -->
+      <div class="lang-switcher">
+        <button class="lang-btn active" onclick="i18n.setLanguage('he')" title="עברית">עב</button>
+        <button class="lang-btn" onclick="i18n.setLanguage('en')" title="English">EN</button>
+        <button class="lang-btn" onclick="i18n.setLanguage('es')" title="Español">ES</button>
+      </div>
+
+      <button class="btn-header" onclick="ui.openModal('voiceModal')" title="הגדרות קול ודיבור">
+        <span>🎧</span> <span data-i18n="voiceSettings">קול</span>
+      </button>
+
+      <button class="btn-header" onclick="ui.openModal('shareModal')" title="שיתוף, ייבוא ויצוא">
+        <span>🔗</span> <span data-i18n="shareBoard">שיתוף</span>
+      </button>
+
+      <button class="btn-header" onclick="window.print()" title="הדפסת לוח לשימוש פיזי">
+        <span>🖨️</span> <span data-i18n="printHardCopy">הדפסה</span>
+      </button>
+
+      <button class="btn-header" onclick="ui.openModal('licensesModal')" title="רישיונות וזכויות יוצרים">
+        <span>📜</span> <span data-i18n="licensesNav">רישיונות</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- סרגל ניהול פרופילים ועריכה (פעיל רק במצב Profiles Mode) -->
+  <div class="admin-toolbar">
+    <div class="admin-profile-select">
+      <span>👤 <strong data-i18n="currentProfile">פרופיל פעיל:</strong></span>
+      <select id="profileSelector" class="admin-select" onchange="appState.switchProfile(this.value)"></select>
+      <button class="btn-header" onclick="ui.openModal('newProfileModal')" style="padding: 4px 8px; font-size: 0.8rem;">
+        ➕ <span data-i18n="newProfile">פרופיל חדש</span>
+      </button>
+    </div>
+
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <button class="btn-header primary" onclick="ui.openNewCardModal()">
+        <span>➕</span> <span data-i18n="addSymbolBtn">הוספת סמל/כרטיסייה</span>
+      </button>
+      <button class="btn-header" onclick="ui.openNewSubboardModal()">
+        <span>📁</span> <span data-i18n="addSubboardBtn">הוספת תת-לוח</span>
+      </button>
+      <button class="btn-header" onclick="ui.lockToMeMode()">
+        <span>🔒</span> <span data-i18n="lockMeModeBtn">נעל ל-Me Mode</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- רצועת המשפט (Sentence Strip) -->
+  <section class="sentence-strip-container">
+    <div class="sentence-strip-top">
+      <div class="strip-title">
+        <span>🧩</span> <span data-i18n="sentenceStripTitle">רצועת המשפט הפעיל</span>
+      </div>
+      <div class="strip-buttons">
+        <button class="btn-strip btn-speak" onclick="ui.speakFullSentence()">
+          <span>🔊</span> <span data-i18n="speakSentence">השמע משפט</span>
+        </button>
+        <button class="btn-strip btn-backspace" onclick="ui.removeLastCardFromSentence()">
+          <span>↩️</span> <span data-i18n="backspaceWord">מחק אחרון</span>
+        </button>
+        <button class="btn-strip btn-clear" onclick="ui.clearSentence()">
+          <span>🗑️</span> <span data-i18n="clearSentence">נקה הכל</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- כרטיסיות המשפט הנבחרות -->
+    <div class="sentence-strip-cards" id="sentenceCardsStrip" data-placeholder="לחצו על כרטיסיות או השתמשו בזיהוי דיבור כדי להרכיב משפט..."></div>
+
+    <!-- תצוגת טקסט המילים -->
+    <div class="text-display-box" id="sentenceTextDisplay">משפט: (ריק)</div>
+  </section>
+
+  <!-- מודול אודיו לטקסט (Speech-to-Text) - דיבור לפענוח ויזואלי -->
+  <section class="stt-voice-bar">
+    <div class="stt-inner">
+      <button id="btnVoiceListen" class="btn-stt-mic" onclick="speechToText.toggleListening()" title="דברו במיקרופון - המערכת תפענח לכרטיסיות ויזואליות">
+        <span id="sttMicIcon">🎙️</span>
+        <span id="sttMicText" data-i18n="voiceToBoardBtn">דבר אל הלוח (אודיו לטקסט)</span>
+      </button>
+
+      <div class="stt-input-wrapper">
+        <input 
+          type="text" 
+          id="sttTextInput" 
+          class="stt-text-input" 
+          placeholder="דברו במיקרופון או הקלידו משפט (למשל: 'אני רוצה לשתות מים קרים')..."
+          onkeydown="if(event.key === 'Enter') speechToText.decodeCurrentText()"
+        >
+        <button class="btn-stt-decode" onclick="speechToText.decodeCurrentText()">
+          <span>🧩</span> <span data-i18n="decodeSpeechBtn">פענח לכרטיסיות</span>
+        </button>
+      </div>
+    </div>
+    <div id="sttListeningFeedback" class="stt-listening-feedback" style="display: none;">
+      <span class="stt-pulse-dot"></span>
+      <span id="sttFeedbackText">מקשיב לדיבור... דברו כעת ברור למיקרופון</span>
+    </div>
+  </section>
+
+  <!-- סרגל ניווט בלוחות ותת-לוחות (Breadcrumbs) -->
+  <nav class="board-navigation-bar">
+    <div class="breadcrumbs-box" id="boardBreadcrumbs">
+      <span>🏠</span> <span class="crumb-link" onclick="ui.navigateToBoard('board_main')">לוח ראשי</span>
+    </div>
+
+    <button id="btnBackBoard" class="btn-back-board" onclick="ui.navigateBackBoard()" style="display: none;">
+      <span>⬅️</span> <span data-i18n="backToMain">חזרה ללוח ראשי</span>
+    </button>
+  </nav>
+
+  <!-- סרגל קטגוריות דקדוקיות (פיצג'רלד) -->
+  <nav class="categories-bar" id="categoryNav">
+    <button class="category-chip active" onclick="ui.filterCategory('all', this)" data-i18n="catAll">✨ כָּל הַסְּמָלִים</button>
+    <button class="category-chip" onclick="ui.filterCategory('person', this)" data-i18n="catPerson">🟡 אֲנָשִׁים וְגוּף</button>
+    <button class="category-chip" onclick="ui.filterCategory('verb', this)" data-i18n="catVerb">🟢 פְּעֻלּוֹת וּפְעָלִים</button>
+    <button class="category-chip" onclick="ui.filterCategory('noun', this)" data-i18n="catNoun">🟠 אֹכֶל וַחֲפָצִים</button>
+    <button class="category-chip" onclick="ui.filterCategory('adj', this)" data-i18n="catAdj">🔵 רְגָשׁוֹת וְתֵאוּרִים</button>
+    <button class="category-chip" onclick="ui.filterCategory('place', this)" data-i18n="catPlace">🟣 מְקוֹמוֹת וּפְנַאי</button>
+    <button class="category-chip" onclick="ui.filterCategory('social', this)" data-i18n="catSocial">🌸 נִימוּס וְתִקְשֹׁרֶת</button>
+  </nav>
+
+  <!-- לוח ראשי: רשת כרטיסיות תלת-ממדיות -->
+  <main class="cards-grid-container" id="cardsGridContainer"></main>
+
+  <!-- סרגל קיצורי מקשים למחשב (Desktop Keyboard Hints) -->
+  <footer class="desktop-shortcuts-bar">
+    <span>⌨️ קיצורי מקשים:</span>
+    <span><span class="kbd-tag">רווח</span> השמעת משפט</span>
+    <span><span class="kbd-tag">Backspace</span> מחיקת מילה</span>
+    <span><span class="kbd-tag">Delete</span> ניקוי</span>
+    <span><span class="kbd-tag">Alt + M</span> מיקרופון (STT)</span>
+    <span><span class="kbd-tag">1-9</span> בחירה מהירה</span>
+    <span><span class="kbd-tag">Esc</span> סגירת חלונית</span>
+  </footer>
+
+  <!-- ======================= חלוניות מודאל (MODALS) ======================= -->
+
+  <!-- מודאל ניהול מנויים, רישום וערכות רקעים ("בקראונד למנויים") -->
+  <div class="modal-overlay" id="subscriptionModal">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3><span>⭐</span> <span data-i18n="subModalTitle">רישום מנויים, ניהול רישיונות ורקעים</span></h3>
+        <button class="btn-modal-close" onclick="ui.closeModal('subscriptionModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        
+        <div class="modal-tabs">
+          <button class="modal-tab-btn active" id="tabBtnSubPlans" onclick="subscriptionManager.switchTab('plans')">📋 מסלולי מנוי</button>
+          <button class="modal-tab-btn" id="tabBtnSubReg" onclick="subscriptionManager.switchTab('reg')">👤 רישום ועדכון מנוי</button>
+          <button class="modal-tab-btn" id="tabBtnSubThemes" onclick="subscriptionManager.switchTab('themes')">🎨 בקראונד ורקעים למנויים</button>
+        </div>
+
+        <!-- טאב 1: מסלולי מנוי ורישיונות -->
+        <div id="subTabPlans">
+          <p style="font-size: 0.92rem; color: #576574; line-height: 1.4;">
+            פלטפורמת "קול ומבט" מספקת פתרון AAC מתקדם. בחרו את המסלול המתאים לכם:
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+            <div class="plan-card active" onclick="subscriptionManager.selectTier('pro')">
+              <div class="plan-card-header">
+                <strong style="color: #d97706; font-size: 1.05rem;">⭐ מנוי PRO - קלינאי תקשורת, מורים והורים (מומלץ)</strong>
+                <span style="background: #f59e0b; color: white; padding: 2px 8px; border-radius: 8px; font-size: 0.75rem;">פעיל</span>
+              </div>
+              <p style="font-size: 0.85rem; color: #64748b;">
+                פרופילים ללא הגבלה, הקלטות קול אישיות לכל כרטיסייה, מנוע אודיו-לטקסט (STT) ללא הגבלה, סנכרון ענן אוטומטי, וגישה מלאה לכל ערכות הרקעים והנושאים!
+              </p>
+            </div>
+
+            <div class="plan-card" onclick="subscriptionManager.selectTier('school')">
+              <div class="plan-card-header">
+                <strong style="color: #5f27cd; font-size: 1.05rem;">🏫 מנוי מוסדי - בתי ספר, מרכזים טיפוליים ומרפאות</strong>
+                <span style="background: #5f27cd; color: white; padding: 2px 8px; border-radius: 8px; font-size: 0.75rem;">מוסדי</span>
+              </div>
+              <p style="font-size: 0.85rem; color: #64748b;">
+                כל יתרונות ה-PRO + ניהול כיתות מרובות תלמידים, סנכרון ענן ישיר בין כל הטאבלטים בכיתה, ייבוא/ייצוא מוסדי מרוכז ודוחות מעקב קליניים.
+              </p>
+            </div>
+
+            <div class="plan-card" onclick="subscriptionManager.selectTier('free')">
+              <div class="plan-card-header">
+                <strong style="color: #475569; font-size: 1.05rem;">🆓 מסלול בסיסי פתוח (Free Starter)</strong>
+                <span style="background: #94a3b8; color: white; padding: 2px 8px; border-radius: 8px; font-size: 0.75rem;">בסיסי</span>
+              </div>
+              <p style="font-size: 0.85rem; color: #64748b;">
+                שימוש בסיסי בלוח ראשי, הקראה קולית מקומית ועבודה אופליין.
+              </p>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 12px; background: #f8fafc; padding: 12px; border-radius: 14px; border: 2px solid #cbd5e1;">
+            <label>הפעלת מפתח רישיון מנוי (License Key):</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="licenseKeyInput" class="form-input" style="flex:1;" placeholder="למשל: AAC-PRO-2026-VIP">
+              <button class="btn-header primary" onclick="subscriptionManager.applyLicenseKey()">הפעל רישיון</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- טאב 2: פרטי רישום מנוי -->
+        <div id="subTabReg" style="display: none;">
+          <div class="form-group">
+            <label>שם המנוי / המטפל / המשתמש:</label>
+            <input type="text" id="subUserNameInput" class="form-input" placeholder="שם מלא">
+          </div>
+          <div class="form-group">
+            <label>כתובת אימייל:</label>
+            <input type="email" id="subUserEmailInput" class="form-input" placeholder="email@example.com">
+          </div>
+          <div class="form-group">
+            <label>תפקיד מקצועי:</label>
+            <select id="subUserRoleSelect" class="form-select">
+              <option value="therapist">קלינאי/ת תקשורת (SLP)</option>
+              <option value="parent">הורה / בן משפחה</option>
+              <option value="teacher">מורה לחינוך מיוחד / סייעת</option>
+              <option value="aac_user">משתמש/ת תקשורת תומכת (AAC User)</option>
+              <option value="clinic">מנהל מרפאה / מוסד חינוכי</option>
+            </select>
+          </div>
+          <button class="btn-submit" onclick="subscriptionManager.saveRegistration()">שמירת פרטי רישום ✔</button>
+        </div>
+
+        <!-- טאב 3: בקראונד למנויים מלא (Subscriber Backgrounds & Themes) -->
+        <div id="subTabThemes" style="display: none;">
+          <p style="font-size: 0.92rem; color: #576574; line-height: 1.4;">
+            מנויי PRO זכאים להתאמה אישית מלאה של הרקע והעיצוב להפחתת עומס תפיסתי ולהתאמה לצרכי הילד:
+          </p>
+
+          <div class="theme-picker-grid">
+            <div class="theme-swatch active" style="background:#f0f4f8; color:#222f3e;" onclick="subscriptionManager.setTheme('default', this)">
+              🎨 פסטל מרגיע
+            </div>
+            <div class="theme-swatch" style="background:#e0f2fe; color:#0369a1;" onclick="subscriptionManager.setTheme('ocean', this)">
+              🌊 כחול ים
+            </div>
+            <div class="theme-swatch" style="background:#ecfdf5; color:#047857;" onclick="subscriptionManager.setTheme('mint', this)">
+              🌿 מנטה טיפולי
+            </div>
+            <div class="theme-swatch" style="background:#fdf2f8; color:#be185d;" onclick="subscriptionManager.setTheme('rose', this)">
+              🌸 ורוד עדין
+            </div>
+            <div class="theme-swatch" style="background:#fef3c7; color:#b45309;" onclick="subscriptionManager.setTheme('wood', this)">
+              🪵 כיתה חמימה
+            </div>
+            <div class="theme-swatch" style="background:#0f172a; color:#f8fafc;" onclick="subscriptionManager.setTheme('dark', this)">
+              🌌 לילה / ניגודיות
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 14px; background: #f8fafc; padding: 12px; border-radius: 14px; border: 2px solid #cbd5e1;">
+            <label>🖼️ העלאת תמונת רקע אישית (Custom Wallpaper):</label>
+            <input type="file" id="customBgFileInput" accept="image/*" class="form-input" onchange="subscriptionManager.handleCustomBgUpload(event)">
+            <button class="btn-header" style="margin-top: 6px; justify-content: center;" onclick="subscriptionManager.resetCustomBg()">איפוס לרקע ברירת מחדל</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- מודאל רישיונות וזכויות יוצרים (Licenses & Attribution) -->
+  <div class="modal-overlay" id="licensesModal">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3><span>📜</span> <span>רישיונות וזכויות יוצרים למאגרי AAC</span></h3>
+        <button class="btn-modal-close" onclick="ui.closeModal('licensesModal')">✕</button>
+      </div>
+      <div class="modal-body" style="font-size: 0.9rem; line-height: 1.5; color: #334155;">
+        <h4 style="color:#10ac84; font-size:1.05rem;">1. קוד המקור של המערכת</h4>
+        <p>מופץ ברישיון קוד פתוח <strong>MIT License</strong>. Copyright &copy; 2026 Kol &amp; Mabat AAC 3D Platform.</p>
+
+        <h4 style="color:#0abde3; font-size:1.05rem; margin-top:10px;">2. סמלי ARASAAC</h4>
+        <p>
+          הסמלים והפיקטוגרמות מתוך מאגר <strong>ARASAAC</strong> נוצרו על ידי Sergio Palao בבעלות ממשלת אראגון (Government of Aragon) ומופצים תחת רישיון <strong>Creative Commons BY-NC-SA 3.0</strong>.
+        </p>
+
+        <h4 style="color:#5f27cd; font-size:1.05rem; margin-top:10px;">3. תקן Open Board Format (OBF)</h4>
+        <p>
+          תאימות מלאה לתקן OBF הבינלאומי לשיתוף וייצוא לוחות תקשורת תואמי Cboard ו-CoughDrop ברישיון פתוח.
+        </p>
+
+        <h4 style="color:#f59e0b; font-size:1.05rem; margin-top:10px;">4. פרטיות והקלטות המשתמש</h4>
+        <p>
+          כל הקלטת קול, תמונה אישית ופרופיל שייכים בלעדית למשתמש. המערכת שומרת את הנתונים מקומית על המכשיר באופליין מלא.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- מודאל נעילה והזנת PIN לשחרור Me Mode -->
+  <div class="modal-overlay" id="pinModal">
+    <div class="modal-window" style="max-width: 380px;">
+      <div class="modal-header">
+        <h3 data-i18n="pinModalTitle"><span>🔒</span> פתיחת מצב עריכה</h3>
+        <button class="btn-modal-close" onclick="ui.closeModal('pinModal')">✕</button>
+      </div>
+      <div class="modal-body" style="text-align: center;">
+        <p style="font-size: 0.9rem; color: #64748b;" data-i18n="pinModalDesc">
+          הקלידו קוד PIN בן 4 ספרות למעבר לניהול פרופיל ועריכת לוחות (ברירת מחדל: 1234):
+        </p>
+
+        <div class="pin-display" id="pinDisplay">----</div>
+
+        <div class="pin-keypad">
+          <button class="pin-btn" onclick="ui.appendPinDigit('1')">1</button>
+          <button class="pin-btn" onclick="ui.appendPinDigit('2')">2</button>
+          <button class="pin-btn" onclick="ui.appendPinDigit('3')">3</button>
+          <button class="pin-btn" onclick="ui.appendPinDigit('4')">4</button>
+          <button class="pin-btn" onclick="ui.appendPinDigit('5')">5</button>
+          <button class="pin-btn" onclick="ui.appendPinDigit('6')">6</button>
+          <button class="pin-btn" onclick="ui.appendPinDigit('7')">7</button>
+          <button class="pin-btn" onclick="ui.appendPinDigit('8')">8</button>
+          <button class="pin-btn" onclick="ui.appendPinDigit('9')">9</button>
+          <button class="pin-btn action" onclick="ui.clearPin()">C</button>
+          <button class="pin-btn" onclick="ui.appendPinDigit('0')">0</button>
+          <button class="pin-btn confirm" onclick="ui.submitPin()">✔</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- מודאל הוספה ועריכת כרטיסייה / סמל (ניהול ויצירת סמלים + הקלטת אודיו) -->
+  <div class="modal-overlay" id="cardEditorModal">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 id="cardEditorTitle"><span>✨</span> <span data-i18n="cardEditorTitle">יצירה וניהול סמל</span></h3>
+        <button class="btn-modal-close" onclick="ui.closeModal('cardEditorModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- טאבים: ספריה מקוונת מול יצירה אישית -->
+        <div class="modal-tabs">
+          <button class="modal-tab-btn active" id="tabBtnLib" onclick="ui.switchEditorTab('library')" data-i18n="tabOnlineLib">📚 ספריה מקוונת ומאגר</button>
+          <button class="modal-tab-btn" id="tabBtnCustom" onclick="ui.switchEditorTab('custom')" data-i18n="tabCustomSymbol">🎨 צור סמל משלך / תמונה</button>
+        </div>
+
+        <!-- טאב 1: ספריה מקוונת (ARASAAC / AAC Library) -->
+        <div id="tabContentLibrary">
+          <div class="form-group">
+            <label data-i18n="searchSymbolLib">חיפוש סמל בספריה המקוונת:</label>
+            <input 
+              type="text" 
+              id="librarySearchInput" 
+              class="form-input" 
+              placeholder="הקלידו מילה (למשל: תפוח, מים, כדור, בית, רוצה)..."
+              oninput="ui.searchOnlineLibrary(this.value)"
+            >
+          </div>
+          <div class="library-results-grid" id="libraryResultsGrid"></div>
+        </div>
+
+        <!-- טאב 2: סמל מותאם אישית (העלאת תמונה / ציור) -->
+        <div id="tabContentCustom" style="display: none;">
+          <div class="form-group">
+            <label data-i18n="uploadImageLabel">העלאת תמונה אישית מהמכשיר או מצלמה:</label>
+            <input type="file" id="customImageInput" accept="image/*" class="form-input" onchange="ui.handleCustomImageUpload(event)">
+            <div id="customImagePreview" style="margin-top: 6px; text-align: center; display: none;">
+              <img id="previewImgElement" src="" style="max-height: 80px; border-radius: 12px; border: 2px solid #cbd5e1;">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label data-i18n="emojiOrIconLabel">או אימוג'י 3D / סמל טקסט:</label>
+            <input type="text" id="customEmojiInput" class="form-input" placeholder="למשל: 🍎, 🧸, 🚌">
+          </div>
+        </div>
+
+        <!-- מדור הקלטת אודיו עצמאית למאגר (Custom Audio Recording) -->
+        <div class="form-group" style="background: #f1f5f9; padding: 12px; border-radius: 14px; border: 2px solid #cbd5e1;">
+          <label style="display:flex; justify-content:space-between; align-items:center;">
+            <span data-i18n="recordVoiceLabel">🎙️ הקלטת קול אישית (הורה / מטפל / ילד):</span>
+            <span id="recordingStatusLabel" style="font-size: 0.8rem; color: #64748b;">אין הקלטה אישית (משמיע ב-TTS)</span>
+          </label>
+          <div style="display: flex; gap: 8px; align-items: center; margin-top: 6px; flex-wrap: wrap;">
+            <button type="button" id="btnRecordVoice" class="btn-header" style="background:#fee2e2; border-color:#ef4444; color:#b91c1c;" onclick="voiceRecorder.toggleRecording()">
+              <span id="recordIcon">🔴</span> <span id="recordBtnText" data-i18n="recordVoiceBtn">הקלט קול</span>
+            </button>
+            <button type="button" id="btnPlayVoice" class="btn-header" style="display:none;" onclick="voiceRecorder.playPreview()">
+              <span>▶️</span> <span data-i18n="playRecordingBtn">השמע הקלטה</span>
+            </button>
+            <button type="button" id="btnClearVoice" class="btn-header" style="display:none; color:#ef4444;" onclick="voiceRecorder.clearRecording()">
+              <span>🗑️</span> <span data-i18n="deleteRecordingBtn">מחק הקלטה</span>
+            </button>
+            <label class="btn-header" style="cursor: pointer; margin: 0;" title="או העלה קובץ אודיו קיים">
+              <span>📁</span> <span data-i18n="uploadAudioBtn">העלאת אודיו</span>
+              <input type="file" id="audioFileInput" accept="audio/*" style="display: none;" onchange="voiceRecorder.handleFileUpload(event)">
+            </label>
+          </div>
+          <input type="hidden" id="cardAudioData" value="">
+        </div>
+
+        <!-- פרטי הכרטיסייה המשותפים -->
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 2px 0;">
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="form-group">
+            <label style="display:flex; justify-content:space-between; align-items:center;">
+              <span data-i18n="labelHebrew">תווית בעברית (מנוקד):</span>
+              <button type="button" class="btn-header" style="padding: 2px 6px; font-size: 0.75rem;" onclick="dictateCardLabel()" title="הכתב מילה בקולך">🎙️ דבר מילה</button>
+            </label>
+            <input type="text" id="cardLabelHe" class="form-input" placeholder="תַּפּוּחַ">
+          </div>
+          <div class="form-group">
+            <label data-i18n="labelEnglish">תווית באנגלית (English):</label>
+            <input type="text" id="cardLabelEn" class="form-input" placeholder="Apple">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="form-group">
+            <label data-i18n="labelSpanish">תווית בספרדית (Español):</label>
+            <input type="text" id="cardLabelEs" class="form-input" placeholder="Manzana">
+          </div>
+          <div class="form-group">
+            <label data-i18n="speechPronounce">הגייה קולית מותאמת (רשות):</label>
+            <input type="text" id="cardSpeechPronounce" class="form-input" placeholder="ניקוד / הגייה מיוחדת">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="form-group">
+            <label data-i18n="grammaticalCategory">קטגוריה דקדוקית (פיצג'רלד):</label>
+            <select id="cardCategorySelect" class="form-select">
+              <option value="verb">🟢 יָרֹק - פֹּעַל / פְּעֻלָּה</option>
+              <option value="noun" selected>🟠 כָּתֹם - שֵׁם עֶצֶם / אֹכֶל / חֵפֶץ</option>
+              <option value="person">🟡 צָהֹב - כִּנּוּי גּוּף / אֲנָשִׁים</option>
+              <option value="adj">🔵 כָּחֹל - רֶגֶשׁ / תֵּאוּר</option>
+              <option value="social">🌸 וָרֹד - מִלָּה חֶבְרָתִית / נִימוּס</option>
+              <option value="place">🟣 סָגֹל - מָקוֹם / חֶדֶר</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label data-i18n="cardActionType">סוג כרטיסייה:</label>
+            <select id="cardActionTypeSelect" class="form-select" onchange="ui.toggleSubboardTargetSelect(this.value)">
+              <option value="action" selected data-i18n="typeActionSpeech">השמעת מילה + רצועת משפט</option>
+              <option value="subboard" data-i18n="typeSubboardLink">קישור ומעבר לתת-לוח 📁</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" id="subboardTargetGroup" style="display: none;">
+          <label data-i18n="selectTargetSubboard">בחר תת-לוח יעד:</label>
+          <select id="subboardTargetSelect" class="form-select"></select>
+        </div>
+
+        <input type="hidden" id="editingCardId" value="">
+        <input type="hidden" id="cardIconType" value="emoji">
+        <input type="hidden" id="cardIconValue" value="⭐">
+
+        <button class="btn-submit" onclick="ui.saveCardFromEditor()" data-i18n="saveCardBtn">שמור כרטיסייה ללוח ✨</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- מודאל הוספת תת-לוח חדש -->
+  <div class="modal-overlay" id="subboardModal">
+    <div class="modal-window" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3><span>📁</span> <span data-i18n="addSubboardTitle">יצירת תת-לוח חדש</span></h3>
+        <button class="btn-modal-close" onclick="ui.closeModal('subboardModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label data-i18n="subboardNameHe">שם תת-הלוח בעברית:</label>
+          <input type="text" id="subboardNameHe" class="form-input" placeholder="למשל: בגדים ונעליים, משחקים, חיות...">
+        </div>
+        <div class="form-group">
+          <label data-i18n="subboardNameEn">שם באנגלית (English):</label>
+          <input type="text" id="subboardNameEn" class="form-input" placeholder="e.g. Clothes, Games, Animals...">
+        </div>
+        <div class="form-group">
+          <label data-i18n="subboardNameEs">שם בספרדית (Español):</label>
+          <input type="text" id="subboardNameEs" class="form-input" placeholder="ej. Ropa, Juegos, Animales...">
+        </div>
+        <div class="form-group">
+          <label data-i18n="subboardIcon">אייקון תת-לוח (אימוג'י):</label>
+          <input type="text" id="subboardIcon" class="form-input" placeholder="📁" value="📁">
+        </div>
+        <button class="btn-submit" onclick="ui.saveNewSubboard()" data-i18n="createSubboardSubmit">צור תת-לוח חדש 🚀</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- מודאל יצירת פרופיל חדש -->
+  <div class="modal-overlay" id="newProfileModal">
+    <div class="modal-window" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3><span>👤</span> <span data-i18n="createProfileTitle">הקמת פרופיל משתמש חדש</span></h3>
+        <button class="btn-modal-close" onclick="ui.closeModal('newProfileModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label data-i18n="profileNameLabel">שם הפרופיל:</label>
+          <input type="text" id="newProfileNameInput" class="form-input" placeholder="למשל: דני (בית), מיכל (בית ספר)...">
+        </div>
+        <div class="form-group">
+          <label data-i18n="profileAvatarLabel">אווטאר לפרופיל:</label>
+          <input type="text" id="newProfileAvatarInput" class="form-input" value="🧒">
+        </div>
+        <button class="btn-submit" onclick="ui.saveNewProfile()" data-i18n="saveProfileBtn">צור פרופיל חדש ✔</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- מודאל סנכרון ענן בזמן אמת (Real-Time Cloud Sync) -->
+  <div class="modal-overlay" id="cloudSyncModal">
+    <div class="modal-window" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3><span>☁️</span> <span data-i18n="cloudSyncTitle">סנכרון ענן בזמן אמת</span></h3>
+        <button class="btn-modal-close" onclick="ui.closeModal('cloudSyncModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.95rem; color: #576574; line-height: 1.5;" data-i18n="cloudSyncDesc">
+          המערכת מסנכרנת את נתוני הלוחות והפרופילים בזמן אמת בין כל המכשירים (טאבלט, מחשב וסמארטפון).
+        </p>
+
+        <div class="form-group" style="background: #f8fafc; padding: 12px; border-radius: 14px; border: 2px solid #cbd5e1;">
+          <label data-i18n="syncRoomKeyLabel">מזהה סנכרון משותף (Sync Room Key):</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="syncRoomKeyInput" class="form-input" style="flex: 1;" readonly>
+            <button class="btn-header" onclick="cloudSync.copySyncKey()">📋</button>
+          </div>
+          <span style="font-size: 0.8rem; color: #8395a7;" data-i18n="syncKeyHint">הזינו מפתח זה במכשיר נוסף כדי לסנכרן אוטומטית ביניהם.</span>
+        </div>
+
+        <div class="form-group">
+          <label data-i18n="joinSyncRoomLabel">התחברות למזהה סנכרון קיים:</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="joinRoomKeyInput" class="form-input" style="flex: 1;" placeholder="הדבק מזהה חדר כאן...">
+            <button class="btn-header primary" onclick="cloudSync.joinRoom()" data-i18n="connectRoomBtn">התחבר</button>
+          </div>
+        </div>
+
+        <button class="btn-submit" onclick="cloudSync.triggerSyncNow()" data-i18n="forceSyncBtn">🔄 סנכרן נתונים עכשיו</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- מודאל התאמת קול והקראה (TTS) -->
+  <div class="modal-overlay" id="voiceModal">
+    <div class="modal-window" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3><span>🎧</span> <span data-i18n="voiceSettingsTitle">התאמת קול וקצב דיבור</span></h3>
+        <button class="btn-modal-close" onclick="ui.closeModal('voiceModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label data-i18n="voiceSelectLabel">קול הקראה זמין:</label>
+          <select id="voiceSelectDropdown" class="form-select" onchange="tts.previewVoice()"></select>
+        </div>
+
+        <div class="form-group">
+          <label><span data-i18n="speechRateLabel">מהירות דיבור:</span> <strong id="voiceRateDisplay" style="color: #10ac84;">0.75×</strong></label>
+          <input type="range" id="voiceRateSlider" min="0.5" max="1.2" step="0.05" value="0.75" class="form-input" style="padding:0; accent-color: #10ac84;" oninput="tts.updateSettingsFromUI()">
+        </div>
+
+        <div class="form-group">
+          <label><span data-i18n="speechPitchLabel">גובה / רכות הטון (Pitch):</span> <strong id="voicePitchDisplay" style="color: #0abde3;">1.0</strong></label>
+          <input type="range" id="voicePitchSlider" min="0.7" max="1.3" step="0.05" value="1.0" class="form-input" style="padding:0; accent-color: #0abde3;" oninput="tts.updateSettingsFromUI()">
+        </div>
+
+        <div class="form-group">
+          <label><span data-i18n="wordDelayLabel">מרווח בין מילים במשפט:</span> <strong id="voiceDelayDisplay" style="color: #5f27cd;">350 מ״ש</strong></label>
+          <input type="range" id="voiceDelaySlider" min="150" max="700" step="50" value="350" class="form-input" style="padding:0; accent-color: #5f27cd;" oninput="tts.updateSettingsFromUI()">
+        </div>
+
+        <button class="btn-submit" onclick="tts.previewVoice()" data-i18n="previewVoiceBtn">🔊 השמעת בדיקת קול</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- מודאל שיתוף, ייבוא וייצוא (OBF / JSON / קישור) -->
+  <div class="modal-overlay" id="shareModal">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3><span>🔗</span> <span data-i18n="shareModalTitle">שיתוף וגיבוי לוחות תקשורת</span></h3>
+        <button class="btn-modal-close" onclick="ui.closeModal('shareModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="sharing-grid">
+          <div class="share-card" onclick="appState.shareViaUrlLink()">
+            <div class="share-card-icon">📲</div>
+            <h4 data-i18n="shareDirectLink">קישור שיתוף ישיר</h4>
+            <p data-i18n="shareDirectLinkDesc">העתקת קישור מיידי לשיתוף בוואטסאפ או במייל.</p>
+          </div>
+
+          <div class="share-card" onclick="appState.exportFullJSON()">
+            <div class="share-card-icon">💾</div>
+            <h4 data-i18n="exportBackup">גיבוי מלא (JSON)</h4>
+            <p data-i18n="exportBackupDesc">שמירת כל הלוחות והפרופילים לקובץ גיבוי.</p>
+          </div>
+
+          <div class="share-card" onclick="document.getElementById('importFileElem').click()">
+            <div class="share-card-icon">📂</div>
+            <h4 data-i18n="importBoard">טעינה מקובץ</h4>
+            <p data-i18n="importBoardDesc">ייבוא לוח מקובץ JSON או OBF שנשלח ממטפל.</p>
+            <input type="file" id="importFileElem" style="display: none;" accept=".json,.obf" onchange="appState.importFromFile(event)">
+          </div>
+
+          <div class="share-card" onclick="appState.exportToOBF()">
+            <div class="share-card-icon">🌐</div>
+            <h4 data-i18n="exportObf">תקן עולמי OBF</h4>
+            <p data-i18n="exportObfDesc">ייצוא לפורמט Open Board Format התואם ל-Cboard/CoughDrop.</p>
+          </div>
+        </div>
+
+        <button class="btn-header" style="justify-content: center; width: 100%; margin-top: 8px;" onclick="appState.resetToFactoryDefaults()">
+          🔄 <span data-i18n="resetDefaults">איפוס להגדרות ברירת המחדל המקוריות</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- הודעת Toast צפה -->
+  <div id="aacToastNotice">הודעה</div>
+
+  <!-- ======================= JavaScript ======================= -->
+  <script>
+    /* ========================================================
+       1. תמיכה רב-לשונית מובנית (i18n: עברית, English, Español)
+       ======================================================== */
+    const I18N_DICTIONARY = {
+      he: {
+        appTitle: "קול ומבט • AAC 3D",
+        appSubtitle: "תקשורת תומכת וחליפית בענן",
+        meModeLabel: "מצב מוגן (Me Mode)",
+        profilesModeLabel: "מצב עריכה (Profiles Mode)",
+        switchToProfiles: "ניהול פרופיל",
+        lockToMeMode: "נעל ל-Me Mode",
+        syncOnline: "מסונכרן לענן",
+        syncSyncing: "מסנכרן...",
+        syncOffline: "אופליין (מקומי)",
+        voiceSettings: "קול",
+        shareBoard: "שיתוף",
+        printHardCopy: "הדפסה",
+        licensesNav: "רישיונות",
+        currentProfile: "פרופיל פעיל:",
+        newProfile: "פרופיל חדש",
+        addSymbolBtn: "הוספת סמל/כרטיסייה",
+        addSubboardBtn: "הוספת תת-לוח",
+        lockMeModeBtn: "נעל ל-Me Mode",
+        sentenceStripTitle: "רצועת המשפט הפעיל",
+        speakSentence: "השמע משפט",
+        backspaceWord: "מחק אחרון",
+        clearSentence: "נקה הכל",
+        voiceToBoardBtn: "דבר אל הלוח (אודיו לטקסט)",
+        decodeSpeechBtn: "פענח לכרטיסיות",
+        backToMain: "חזרה ללוח ראשי",
+        catAll: "✨ כָּל הַסְּמָלִים",
+        catPerson: "🟡 אֲנָשִׁים וְגוּף",
+        catVerb: "🟢 פְּעֻלּוֹת וּפְעָלִים",
+        catNoun: "🟠 אֹכֶל וַחֲפָצִים",
+        catAdj: "🔵 רְגָשׁוֹת וְתֵאוּרִים",
+        catPlace: "🟣 מְקוֹמוֹת וּפְנַאי",
+        catSocial: "🌸 נִימוּס וְתִקְשֹׁרֶת",
+        pinModalTitle: "פתיחת מצב עריכה",
+        pinModalDesc: "הקלידו קוד PIN בן 4 ספרות למעבר לניהול פרופיל ועריכת לוחות (ברירת מחדל: 1234):",
+        cardEditorTitle: "יצירה וניהול סמל",
+        tabOnlineLib: "📚 ספריה מקוונת ומאגר",
+        tabCustomSymbol: "🎨 צור סמל משלך / תמונה",
+        searchSymbolLib: "חיפוש סמל בספריה המקוונת:",
+        uploadImageLabel: "העלאת תמונה אישית מהמכשיר או מצלמה:",
+        emojiOrIconLabel: "או אימוג'י 3D / סמל טקסט:",
+        recordVoiceLabel: "🎙️ הקלטת קול אישית (הורה / מטפל / ילד):",
+        recordVoiceBtn: "הקלט קול",
+        playRecordingBtn: "השמע הקלטה",
+        deleteRecordingBtn: "מחק הקלטה",
+        uploadAudioBtn: "העלאת אודיו",
+        labelHebrew: "תווית בעברית (מנוקד):",
+        labelEnglish: "תווית באנגלית (English):",
+        labelSpanish: "תווית בספרדית (Español):",
+        speechPronounce: "הגייה קולית מותאמת (רשות):",
+        grammaticalCategory: "קטגוריה דקדוקית (פיצג'רלד):",
+        cardActionType: "סוג כרטיסייה:",
+        typeActionSpeech: "השמעת מילה + רצועת משפט",
+        typeSubboardLink: "קישור ומעבר לתת-לוח 📁",
+        selectTargetSubboard: "בחר תת-לוח יעד:",
+        saveCardBtn: "שמור כרטיסייה ללוח ✨",
+        addSubboardTitle: "יצירת תת-לוח חדש",
+        subboardNameHe: "שם תת-הלוח בעברית:",
+        subboardNameEn: "שם באנגלית (English):",
+        subboardNameEs: "שם בספרדית (Español):",
+        subboardIcon: "אייקון תת-לוח (אימוג'י):",
+        createSubboardSubmit: "צור תת-לוח חדש 🚀",
+        createProfileTitle: "הקמת פרופיל משתמש חדש",
+        profileNameLabel: "שם הפרופיל:",
+        profileAvatarLabel: "אווטאר לפרופיל:",
+        saveProfileBtn: "צור פרופיל חדש ✔",
+        cloudSyncTitle: "סנכרון ענן בזמן אמת",
+        cloudSyncDesc: "המערכת מסנכרנת את נתוני הלוחות והפרופילים בזמן אמת בין כל המכשירים (טאבלט, מחשב וסמארטפון).",
+        syncRoomKeyLabel: "מזהה סנכרון משותף (Sync Room Key):",
+        syncKeyHint: "הזינו מפתח זה במכשיר נוסף כדי לסנכרן אוטומטית ביניהם.",
+        joinSyncRoomLabel: "התחברות למזהה סנכרון קיים:",
+        connectRoomBtn: "התחבר",
+        forceSyncBtn: "🔄 סנכרן נתונים עכשיו",
+        voiceSettingsTitle: "התאמת קול וקצב דיבור",
+        voiceSelectLabel: "קול הקראה זמין:",
+        speechRateLabel: "מהירות דיבור:",
+        speechPitchLabel: "גובה / רכות הטון (Pitch):",
+        wordDelayLabel: "מרווח בין מילים במשפט:",
+        previewVoiceBtn: "🔊 השמעת בדיקת קול",
+        shareModalTitle: "שיתוף וגיבוי לוחות תקשורת",
+        shareDirectLink: "קישור שיתוף ישיר",
+        shareDirectLinkDesc: "העתקת קישור מיידי לשיתוף בוואטסאפ או במייל.",
+        exportBackup: "גיבוי מלא (JSON)",
+        exportBackupDesc: "שמירת כל הלוחות והפרופילים לקובץ גיבוי.",
+        importBoard: "טעינה מקובץ",
+        importBoardDesc: "ייבוא לוח מקובץ JSON או OBF שנשלח ממטפל.",
+        exportObf: "תקן עולמי OBF",
+        exportObfDesc: "ייצוא לפורמט Open Board Format התואם ל-Cboard/CoughDrop.",
+        resetDefaults: "איפוס להגדרות ברירת המחדל המקוריות",
+        sentenceEmpty: "משפט: (ריק)",
+        subboardBadge: "לוח",
+        subModalTitle: "רישום מנויים, ניהול רישיונות ורקעים"
+      },
+      en: {
+        appTitle: "Kol & Mabat • AAC 3D",
+        appSubtitle: "Augmentative & Alternative Communication",
+        meModeLabel: "Me Mode (Protected)",
+        profilesModeLabel: "Profiles Mode (Admin)",
+        switchToProfiles: "Manage Profiles",
+        lockToMeMode: "Lock to Me Mode",
+        syncOnline: "Cloud Synced",
+        syncSyncing: "Syncing...",
+        syncOffline: "Offline (Local)",
+        voiceSettings: "Voice",
+        shareBoard: "Share",
+        printHardCopy: "Print",
+        licensesNav: "Licenses",
+        currentProfile: "Active Profile:",
+        newProfile: "New Profile",
+        addSymbolBtn: "Add Symbol / Card",
+        addSubboardBtn: "Add Sub-board",
+        lockMeModeBtn: "Lock to Me Mode",
+        sentenceStripTitle: "Active Sentence Strip",
+        speakSentence: "Speak Sentence",
+        backspaceWord: "Backspace",
+        clearSentence: "Clear All",
+        voiceToBoardBtn: "Speak to Board (Audio to Text)",
+        decodeSpeechBtn: "Decode to Cards",
+        backToMain: "Back to Main Board",
+        catAll: "✨ All Symbols",
+        catPerson: "🟡 People & Pronouns",
+        catVerb: "🟢 Actions & Verbs",
+        catNoun: "🟠 Nouns & Food",
+        catAdj: "🔵 Feelings & Descriptors",
+        catPlace: "🟣 Places & Rooms",
+        catSocial: "🌸 Social & Courtesy",
+        pinModalTitle: "Unlock Profiles Mode",
+        pinModalDesc: "Enter 4-digit PIN to switch to admin profile and board editor (default: 1234):",
+        cardEditorTitle: "Symbol Creator & Library",
+        tabOnlineLib: "📚 Online Library",
+        tabCustomSymbol: "🎨 Make Custom Symbol / Photo",
+        searchSymbolLib: "Search online library pictograms:",
+        uploadImageLabel: "Upload photo from device or camera:",
+        emojiOrIconLabel: "Or 3D Emoji / Text Symbol:",
+        recordVoiceLabel: "🎙️ Personal Voice Recording (Parent / Clinician):",
+        recordVoiceBtn: "Record Voice",
+        playRecordingBtn: "Play Recording",
+        deleteRecordingBtn: "Delete Recording",
+        uploadAudioBtn: "Upload Audio",
+        labelHebrew: "Label in Hebrew (with vowels):",
+        labelEnglish: "Label in English:",
+        labelSpanish: "Label in Spanish (Español):",
+        speechPronounce: "Custom Vocal Pronunciation (opt):",
+        grammaticalCategory: "Grammatical Category (Fitzgerald):",
+        cardActionType: "Card Action Type:",
+        typeActionSpeech: "Speak word + Sentence Strip",
+        typeSubboardLink: "Link to Sub-board 📁",
+        selectTargetSubboard: "Select target sub-board:",
+        saveCardBtn: "Save Symbol to Board ✨",
+        addSubboardTitle: "Create New Sub-board",
+        subboardNameHe: "Sub-board Name (Hebrew):",
+        subboardNameEn: "Sub-board Name (English):",
+        subboardNameEs: "Sub-board Name (Spanish):",
+        subboardIcon: "Sub-board Icon (Emoji):",
+        createSubboardSubmit: "Create Sub-board 🚀",
+        createProfileTitle: "Create New User Profile",
+        profileNameLabel: "Profile Name:",
+        profileAvatarLabel: "Profile Avatar:",
+        saveProfileBtn: "Create Profile ✔",
+        cloudSyncTitle: "Real-Time Cloud Sync",
+        cloudSyncDesc: "The system synchronizes boards and profiles in real-time across all devices.",
+        syncRoomKeyLabel: "Shared Sync Room Key:",
+        syncKeyHint: "Enter this key on another device to sync automatically.",
+        joinSyncRoomLabel: "Connect to existing Sync Key:",
+        connectRoomBtn: "Connect",
+        forceSyncBtn: "🔄 Sync Now",
+        voiceSettingsTitle: "Voice & Speech Settings",
+        voiceSelectLabel: "Available Voice:",
+        speechRateLabel: "Speech Rate:",
+        speechPitchLabel: "Speech Pitch:",
+        wordDelayLabel: "Word Delay in Sentence:",
+        previewVoiceBtn: "🔊 Test Voice",
+        shareModalTitle: "Share & Backup Communication Boards",
+        shareDirectLink: "Direct Share Link",
+        shareDirectLinkDesc: "Copy link to open this board on WhatsApp or Email.",
+        exportBackup: "Full Backup (JSON)",
+        exportBackupDesc: "Save all boards and profiles to a backup file.",
+        importBoard: "Load from File",
+        importBoardDesc: "Import board from JSON or OBF file.",
+        exportObf: "Global Standard OBF",
+        exportObfDesc: "Export Open Board Format for Cboard / CoughDrop.",
+        resetDefaults: "Reset to Original Factory Defaults",
+        sentenceEmpty: "Sentence: (empty)",
+        subboardBadge: "Board",
+        subModalTitle: "Subscriptions, Licenses & Backgrounds"
+      },
+      es: {
+        appTitle: "Voz y Mirada • CAA 3D",
+        appSubtitle: "Comunicación Aumentativa y Alternativa",
+        meModeLabel: "Modo Protegido (Me Mode)",
+        profilesModeLabel: "Modo Edición (Profiles Mode)",
+        switchToProfiles: "Gestionar Perfiles",
+        lockToMeMode: "Bloquear a Me Mode",
+        syncOnline: "Sincronizado en la Nube",
+        syncSyncing: "Sincronizando...",
+        syncOffline: "Desconectado (Local)",
+        voiceSettings: "Voz",
+        shareBoard: "Compartir",
+        printHardCopy: "Imprimir",
+        licensesNav: "Licencias",
+        currentProfile: "Perfil Activo:",
+        newProfile: "Nuevo Perfil",
+        addSymbolBtn: "Añadir Símbolo / Tarjeta",
+        addSubboardBtn: "Añadir Sub-tablero",
+        lockMeModeBtn: "Bloquear a Me Mode",
+        sentenceStripTitle: "Tira de Frase Activa",
+        speakSentence: "Reproducir Frase",
+        backspaceWord: "Borrar Último",
+        clearSentence: "Borrar Todo",
+        voiceToBoardBtn: "Hablar al Tablero (Audio a Texto)",
+        decodeSpeechBtn: "Decodificar a Tarjetas",
+        backToMain: "Volver al Tablero Principal",
+        catAll: "✨ Todos los Símbolos",
+        catPerson: "🟡 Personas y Pronombres",
+        catVerb: "🟢 Acciones y Verbos",
+        catNoun: "🟠 Nombres y Comida",
+        catAdj: "🔵 Emociones y Descripciones",
+        catPlace: "🟣 Lugares y Espacios",
+        catSocial: "🌸 Cortesía y Social",
+        pinModalTitle: "Desbloquear Modo Edición",
+        pinModalDesc: "Ingrese PIN de 4 dígitos para acceder al editor (predeterminado: 1234):",
+        cardEditorTitle: "Creador y Biblioteca de Símbolos",
+        tabOnlineLib: "📚 Biblioteca en Línea",
+        tabCustomSymbol: "🎨 Crear Símbolo / Foto",
+        searchSymbolLib: "Buscar pictogramas en biblioteca:",
+        uploadImageLabel: "Subir foto desde dispositivo o cámara:",
+        emojiOrIconLabel: "O Emoji 3D / Símbolo de Texto:",
+        recordVoiceLabel: "🎙️ Grabación de Voz Personal (Padre / Terapeuta):",
+        recordVoiceBtn: "Grabar Voz",
+        playRecordingBtn: "Reproducir Grabación",
+        deleteRecordingBtn: "Eliminar Grabación",
+        uploadAudioBtn: "Subir Audio",
+        labelHebrew: "Etiqueta en Hebreo:",
+        labelEnglish: "Etiqueta en Inglés (English):",
+        labelSpanish: "Etiqueta en Español (Español):",
+        speechPronounce: "Pronunciación personalizada (opc):",
+        grammaticalCategory: "Categoría Gramatical (Fitzgerald):",
+        cardActionType: "Tipo de Tarjeta:",
+        typeActionSpeech: "Vocalizar palabra + Tira de frase",
+        typeSubboardLink: "Enlace a Sub-tablero 📁",
+        selectTargetSubboard: "Seleccionar sub-tablero destino:",
+        saveCardBtn: "Guardar Símbolo en Tablero ✨",
+        addSubboardTitle: "Crear Nuevo Sub-tablero",
+        subboardNameHe: "Nombre en Hebreo:",
+        subboardNameEn: "Nombre en Inglés:",
+        subboardNameEs: "Nombre en Español:",
+        subboardIcon: "Icono de Sub-tablero (Emoji):",
+        createSubboardSubmit: "Crear Sub-tablero 🚀",
+        createProfileTitle: "Crear Nuevo Perfil de Usuario",
+        profileNameLabel: "Nombre del Perfil:",
+        profileAvatarLabel: "Avatar del Perfil:",
+        saveProfileBtn: "Crear Perfil ✔",
+        cloudSyncTitle: "Sincronización en la Nube en Tiempo Real",
+        cloudSyncDesc: "El sistema sincroniza tableros y perfiles en tiempo real en todos los dispositivos.",
+        syncRoomKeyLabel: "Clave de Sala de Sincronización:",
+        syncKeyHint: "Ingrese esta clave en otro dispositivo para sincronizar automáticamente.",
+        joinSyncRoomLabel: "Conectar a clave existente:",
+        connectRoomBtn: "Conectar",
+        forceSyncBtn: "🔄 Sincronizar Ahora",
+        voiceSettingsTitle: "Ajustes de Voz y Habla",
+        voiceSelectLabel: "Voz disponible:",
+        speechRateLabel: "Velocidad de habla:",
+        speechPitchLabel: "Tono de voz (Pitch):",
+        wordDelayLabel: "Intervalo entre palabras:",
+        previewVoiceBtn: "🔊 Probar Voz",
+        shareModalTitle: "Compartir y Respaldar Tableros",
+        shareDirectLink: "Enlace Directo",
+        shareDirectLinkDesc: "Copiar enlace para abrir en WhatsApp o Email.",
+        exportBackup: "Copia de Seguridad (JSON)",
+        exportBackupDesc: "Guardar todos los tableros y perfiles en archivo.",
+        importBoard: "Cargar desde Archivo",
+        importBoardDesc: "Importar tablero desde archivo JSON o OBF.",
+        exportObf: "Estándar Global OBF",
+        exportObfDesc: "Exportar en formato Open Board Format para Cboard/CoughDrop.",
+        resetDefaults: "Restablecer Valores de Fábrica",
+        sentenceEmpty: "Frase: (vacía)",
+        subboardBadge: "Tablero",
+        subModalTitle: "Suscripciones, Licencias y Fondos"
+      }
+    };
+
+    const i18n = {
+      currentLang: "he",
+      
+      init() {
+        const saved = localStorage.getItem("aac_app_lang");
+        if (saved && I18N_DICTIONARY[saved]) {
+          this.currentLang = saved;
+        }
+        this.applyLanguage();
+      },
+
+      setLanguage(lang) {
+        if (!I18N_DICTIONARY[lang]) return;
+        this.currentLang = lang;
+        localStorage.setItem("aac_app_lang", lang);
+        this.applyLanguage();
+        ui.renderBoard();
+        ui.renderSentenceStrip();
+        tts.populateVoiceList();
+        ui.showToast(lang === 'he' ? 'השפה הוחלפה לעברית 🇮🇱' : lang === 'es' ? 'Idioma cambiado a Español 🇪🇸' : 'Language switched to English 🇺🇸');
+      },
+
+      t(key) {
+        const dict = I18N_DICTIONARY[this.currentLang] || I18N_DICTIONARY.he;
+        return dict[key] || key;
+      },
+
+      applyLanguage() {
+        const isRtl = (this.currentLang === "he");
+        document.documentElement.lang = this.currentLang;
+        document.documentElement.dir = isRtl ? "rtl" : "ltr";
+        document.body.className = `${appState.mode === 'me' ? 'mode-me' : 'mode-profiles'} ${isRtl ? 'rtl' : 'ltr'}`;
+
+        document.querySelectorAll("[data-i18n]").forEach(elem => {
+          const key = elem.getAttribute("data-i18n");
+          if (key) {
+            elem.textContent = this.t(key);
+          }
+        });
+
+        document.querySelectorAll(".lang-btn").forEach(btn => {
+          btn.classList.toggle("active", btn.textContent.toLowerCase().includes(this.currentLang));
+        });
+
+        ui.updateModeUI();
+      }
+    };
+
+    /* ========================================================
+       2. מאגר סמלים מקוון ו-ARASAAC (Online Symbol Library)
+       ======================================================== */
+    const ONLINE_SYMBOL_LIBRARY_PRESETS = [
+      // פעלים ופעולות
+      { id: "lib_want", labelHe: "רוֹצֶה", labelEn: "Want", labelEs: "Quiero", cat: "verb", emoji: "🤲" },
+      { id: "lib_eat", labelHe: "לֶאֱכֹל", labelEn: "Eat", labelEs: "Comer", cat: "verb", emoji: "🍽️" },
+      { id: "lib_drink", labelHe: "לִשְׁתּוֹת", labelEn: "Drink", labelEs: "Beber", cat: "verb", emoji: "🥤" },
+      { id: "lib_play", labelHe: "לְשַׂחֵק", labelEn: "Play", labelEs: "Jugar", cat: "verb", emoji: "🎮" },
+      { id: "lib_go", labelHe: "לָלֶכֶת", labelEn: "Go", labelEs: "Ir", cat: "verb", emoji: "🚶‍♂️" },
+      { id: "lib_help", labelHe: "לַעֲזֹר", labelEn: "Help", labelEs: "Ayudar", cat: "verb", emoji: "🤝" },
+      { id: "lib_hug", labelHe: "לְחַבֵּק", labelEn: "Hug", labelEs: "Abrazar", cat: "verb", emoji: "🫂" },
+      { id: "lib_rest", labelHe: "לָנוּחַ", labelEn: "Rest", labelEs: "Descansar", cat: "verb", emoji: "🛌" },
+      { id: "lib_read", labelHe: "לִקְרֹא", labelEn: "Read", labelEs: "Leer", cat: "verb", emoji: "📖" },
+      { id: "lib_open", labelHe: "לִפְתֹּחַ", labelEn: "Open", labelEs: "Abrir", cat: "verb", emoji: "🚪" },
+      { id: "lib_close", labelHe: "לִסְגֹּר", labelEn: "Close", labelEs: "Cerrar", cat: "verb", emoji: "🔒" },
+
+      // שמות עצם ואוכל
+      { id: "lib_water", labelHe: "מַיִם", labelEn: "Water", labelEs: "Agua", cat: "noun", emoji: "💧" },
+      { id: "lib_apple", labelHe: "תַּפּוּחַ", labelEn: "Apple", labelEs: "Manzana", cat: "noun", emoji: "🍎" },
+      { id: "lib_banana", labelHe: "בָּנָנָה", labelEn: "Banana", labelEs: "Plátano", cat: "noun", emoji: "🍌" },
+      { id: "lib_bread", labelHe: "לֶחֶם", labelEn: "Bread", labelEs: "Pan", cat: "noun", emoji: "🍞" },
+      { id: "lib_sandwich", labelHe: "כָּרִיךְ", labelEn: "Sandwich", labelEs: "Sándwich", cat: "noun", emoji: "🥪" },
+      { id: "lib_snack", labelHe: "חֲטִיף", labelEn: "Snack", labelEs: "Aperitivo", cat: "noun", emoji: "🥨" },
+      { id: "lib_juice", labelHe: "מִיץ", labelEn: "Juice", labelEs: "Jugo", cat: "noun", emoji: "🧃" },
+      { id: "lib_milk", labelHe: "חָלָב", labelEn: "Milk", labelEs: "Leche", cat: "noun", emoji: "🥛" },
+      { id: "lib_ball", labelHe: "כַּדּוּר", labelEn: "Ball", labelEs: "Pelota", cat: "noun", emoji: "⚽" },
+      { id: "lib_tablet", labelHe: "טַאבְּלֶט", labelEn: "Tablet", labelEs: "Tableta", cat: "noun", emoji: "📱" },
+      { id: "lib_car", labelHe: "מְכוֹנִית", labelEn: "Car", labelEs: "Coche", cat: "noun", emoji: "🚗" },
+
+      // אנשים
+      { id: "lib_i", labelHe: "אֲנִי", labelEn: "I", labelEs: "Yo", cat: "person", emoji: "🧒" },
+      { id: "lib_you", labelHe: "אַתָּה", labelEn: "You", labelEs: "Tú", cat: "person", emoji: "👉" },
+      { id: "lib_mom", labelHe: "אִמָּא", labelEn: "Mom", labelEs: "Mamá", cat: "person", emoji: "👩" },
+      { id: "lib_dad", labelHe: "אַבָּא", labelEn: "Dad", labelEs: "Papá", cat: "person", emoji: "👨" },
+      { id: "lib_teacher", labelHe: "מוֹרָה", labelEn: "Teacher", labelEs: "Maestra", cat: "person", emoji: "👩‍🏫" },
+      { id: "lib_friend", labelHe: "חָבֵר", labelEn: "Friend", labelEs: "Amigo", cat: "person", emoji: "🧑‍🤝‍🧑" },
+
+      // רגשות
+      { id: "lib_happy", labelHe: "שָׂמֵחַ", labelEn: "Happy", labelEs: "Feliz", cat: "adj", emoji: "😊" },
+      { id: "lib_sad", labelHe: "עָצוּב", labelEn: "Sad", labelEs: "Triste", cat: "adj", emoji: "😢" },
+      { id: "lib_tired", labelHe: "עָיֵף", labelEn: "Tired", labelEs: "Cansado", cat: "adj", emoji: "🥱" },
+      { id: "lib_pain", labelHe: "כּוֹאֵב לִי", labelEn: "Hurt", labelEs: "Me duele", cat: "adj", emoji: "🤕" },
+      { id: "lib_more", labelHe: "עוֹד", labelEn: "More", labelEs: "Más", cat: "adj", emoji: "➕" },
+      { id: "lib_stop", labelHe: "מַסְפִּיק", labelEn: "Stop", labelEs: "Basta", cat: "adj", emoji: "🛑" },
+
+      // מקומות
+      { id: "lib_home", labelHe: "הַבַּיְתָה", labelEn: "Home", labelEs: "Casa", cat: "place", emoji: "🏠" },
+      { id: "lib_school", labelHe: "כִּתָּה", labelEn: "Classroom", labelEs: "Clase", cat: "place", emoji: "🏫" },
+      { id: "lib_yard", labelHe: "חָצֵר", labelEn: "Yard", labelEs: "Patio", cat: "place", emoji: "🌳" },
+      { id: "lib_toilet", labelHe: "שֵׁירוּתִים", labelEn: "Restroom", labelEs: "Baño", cat: "place", emoji: "🚽" },
+
+      // חברתי
+      { id: "lib_hello", labelHe: "שָׁלוֹם", labelEn: "Hello", labelEs: "Hola", cat: "social", emoji: "👋" },
+      { id: "lib_thanks", labelHe: "תּוֹדָה", labelEn: "Thank you", labelEs: "Gracias", cat: "social", emoji: "🙏" },
+      { id: "lib_please", labelHe: "בְּבַקָּשָׁה", labelEn: "Please", labelEs: "Por favor", cat: "social", emoji: "✨" },
+      { id: "lib_yes", labelHe: "כֵּן", labelEn: "Yes", labelEs: "Sí", cat: "social", emoji: "👍" },
+      { id: "lib_no", labelHe: "לֹא", labelEn: "No", labelEs: "No", cat: "social", emoji: "👎" }
+    ];
+
+    /* ========================================================
+       3. ניהול נתונים, היררכיית לוחות ותת-לוחות ופרופילים
+       ======================================================== */
+    const DEFAULT_APP_DATA = {
+      version: "2.2",
+      activeProfileId: "prof_main",
+      activeBoardId: "board_main",
+      pinCode: "1234",
+      profiles: [
+        {
+          id: "prof_main",
+          name: "פרופיל ראשי (יומיומי)",
+          avatar: "🧒",
+          boards: {
+            "board_main": {
+              id: "board_main",
+              titleHe: "לוח ראשי",
+              titleEn: "Main Board",
+              titleEs: "Tablero Principal",
+              cards: [
+                // אנשים וכינויי גוף
+                { id: "c1", type: "action", labelHe: "אֲנִי", labelEn: "I", labelEs: "Yo", speechHe: "אֲנִי", cat: "person", iconType: "emoji", iconValue: "🧒" },
+                { id: "c2", type: "action", labelHe: "אַתָּה", labelEn: "You", labelEs: "Tú", speechHe: "אַתָּה", cat: "person", iconType: "emoji", iconValue: "👉" },
+                { id: "c3", type: "action", labelHe: "אִמָּא", labelEn: "Mom", labelEs: "Mamá", speechHe: "אִמָּא", cat: "person", iconType: "emoji", iconValue: "👩" },
+                { id: "c4", type: "action", labelHe: "אַבָּא", labelEn: "Dad", labelEs: "Papá", speechHe: "אַבָּא", cat: "person", iconType: "emoji", iconValue: "👨" },
+
+                // פעלים ופעולות
+                { id: "c5", type: "action", labelHe: "רוֹצֶה", labelEn: "Want", labelEs: "Quiero", speechHe: "רוֹצֶה", cat: "verb", iconType: "emoji", iconValue: "🤲" },
+                { id: "c6", type: "action", labelHe: "לֹא רוֹצֶה", labelEn: "Don't want", labelEs: "No quiero", speechHe: "לֹא רוֹצֶה", cat: "verb", iconType: "emoji", iconValue: "🙅‍♂️" },
+                { id: "c7", type: "action", labelHe: "לַעֲזֹר", labelEn: "Help", labelEs: "Ayuda", speechHe: "לַעֲזֹר", cat: "verb", iconType: "emoji", iconValue: "🤝" },
+
+                // קישורים לתת-לוחות מודולריים (Sub-boards)
+                { id: "c_f1", type: "subboard", targetBoardId: "board_food", labelHe: "אֹכֶל וּשְׁתִיָּה", labelEn: "Food & Drinks", labelEs: "Comida y Bebida", speechHe: "אֹכֶל וּשְׁתִיָּה", cat: "folder", iconType: "emoji", iconValue: "🍎" },
+                { id: "c_f2", type: "subboard", targetBoardId: "board_feelings", labelHe: "רְגָשׁוֹת וּתְחוּשׁוֹת", labelEn: "Feelings", labelEs: "Emociones", speechHe: "רְגָשׁוֹת", cat: "folder", iconType: "emoji", iconValue: "😊" },
+                { id: "c_f3", type: "subboard", targetBoardId: "board_activities", labelHe: "פְּעִילוּיוֹת וּמִשְׂחָק", labelEn: "Activities", labelEs: "Actividades", speechHe: "פְּעִילוּיוֹת", cat: "folder", iconType: "emoji", iconValue: "🎮" },
+                { id: "c_f4", type: "subboard", targetBoardId: "board_places", labelHe: "מְקוֹמוֹת וַחֲדָרִים", labelEn: "Places", labelEs: "Lugares", speechHe: "מְקוֹמוֹת", cat: "folder", iconType: "emoji", iconValue: "🏠" },
+
+                // מילות נימוס ותקשורת
+                { id: "c8", type: "action", labelHe: "שָׁלוֹם", labelEn: "Hello", labelEs: "Hola", speechHe: "שָׁלוֹם", cat: "social", iconType: "emoji", iconValue: "👋" },
+                { id: "c9", type: "action", labelHe: "תּוֹדָה", labelEn: "Thank you", labelEs: "Gracias", speechHe: "תּוֹדָה", cat: "social", iconType: "emoji", iconValue: "🙏" },
+                { id: "c10", type: "action", labelHe: "כֵּן", labelEn: "Yes", labelEs: "Sí", speechHe: "כֵּן", cat: "social", iconType: "emoji", iconValue: "👍" },
+                { id: "c11", type: "action", labelHe: "לֹא", labelEn: "No", labelEs: "No", speechHe: "לֹא", cat: "social", iconType: "emoji", iconValue: "👎" }
+              ]
+            },
+
+            // תת-לוח: אוכל ושתייה
+            "board_food": {
+              id: "board_food",
+              parentBoardId: "board_main",
+              titleHe: "אֹכֶל וּשְׁתִיָּה",
+              titleEn: "Food & Drinks",
+              titleEs: "Comida y Bebida",
+              cards: [
+                { id: "cf1", type: "action", labelHe: "מַיִם", labelEn: "Water", labelEs: "Agua", speechHe: "מַיִם", cat: "noun", iconType: "emoji", iconValue: "💧" },
+                { id: "cf2", type: "action", labelHe: "תַּפּוּחַ", labelEn: "Apple", labelEs: "Manzana", speechHe: "תַּפּוּחַ", cat: "noun", iconType: "emoji", iconValue: "🍎" },
+                { id: "cf3", type: "action", labelHe: "בָּנָנָה", labelEn: "Banana", labelEs: "Plátano", speechHe: "בָּנָנָה", cat: "noun", iconType: "emoji", iconValue: "🍌" },
+                { id: "cf4", type: "action", labelHe: "לֶחֶם", labelEn: "Bread", labelEs: "Pan", speechHe: "לֶחֶם", cat: "noun", iconType: "emoji", iconValue: "🍞" },
+                { id: "cf5", type: "action", labelHe: "כָּרִיךְ", labelEn: "Sandwich", labelEs: "Sándwich", speechHe: "כָּרִיךְ", cat: "noun", iconType: "emoji", iconValue: "🥪" },
+                { id: "cf6", type: "action", labelHe: "חֲטִיף", labelEn: "Snack", labelEs: "Aperitivo", speechHe: "חֲטִיף", cat: "noun", iconType: "emoji", iconValue: "🥨" },
+                { id: "cf7", type: "action", labelHe: "מִיץ", labelEn: "Juice", labelEs: "Jugo", speechHe: "מִיץ", cat: "noun", iconType: "emoji", iconValue: "🧃" },
+                { id: "cf8", type: "action", labelHe: "שׂוֹקוֹ", labelEn: "Chocolate Milk", labelEs: "Chocolatada", speechHe: "שׁוֹקוֹ", cat: "noun", iconType: "emoji", iconValue: "🍫" },
+                { id: "cf9", type: "action", labelHe: "לֶאֱכֹל", labelEn: "Eat", labelEs: "Comer", speechHe: "לֶאֱכֹל", cat: "verb", iconType: "emoji", iconValue: "🍽️" },
+                { id: "cf10", type: "action", labelHe: "לִשְׁתּוֹת", labelEn: "Drink", labelEs: "Beber", speechHe: "לִשְׁתּוֹת", cat: "verb", iconType: "emoji", iconValue: "🥤" },
+                { id: "cf11", type: "action", labelHe: "טָעִים", labelEn: "Tasty", labelEs: "Rico", speechHe: "טָעִים", cat: "adj", iconType: "emoji", iconValue: "😋" },
+                { id: "cf12", type: "action", labelHe: "עוֹד", labelEn: "More", labelEs: "Más", speechHe: "עוֹד", cat: "adj", iconType: "emoji", iconValue: "➕" }
+              ]
+            },
+
+            // תת-לוח: רגשות ותחושות
+            "board_feelings": {
+              id: "board_feelings",
+              parentBoardId: "board_main",
+              titleHe: "רְגָשׁוֹת וּתְחוּשׁוֹת",
+              titleEn: "Feelings & Emotions",
+              titleEs: "Emociones y Sentimientos",
+              cards: [
+                { id: "fe1", type: "action", labelHe: "שָׂמֵחַ", labelEn: "Happy", labelEs: "Feliz", speechHe: "שָׂמֵחַ", cat: "adj", iconType: "emoji", iconValue: "😊" },
+                { id: "fe2", type: "action", labelHe: "עָצוּב", labelEn: "Sad", labelEs: "Triste", speechHe: "עָצוּב", cat: "adj", iconType: "emoji", iconValue: "😢" },
+                { id: "fe3", type: "action", labelHe: "עָיֵף", labelEn: "Tired", labelEs: "Cansado", speechHe: "עָיֵף", cat: "adj", iconType: "emoji", iconValue: "🥱" },
+                { id: "fe4", type: "action", labelHe: "כּוֹאֵב לִי", labelEn: "Hurt", labelEs: "Me duele", speechHe: "כּוֹאֵב לִי", cat: "adj", iconType: "emoji", iconValue: "🤕" },
+                { id: "fe5", type: "action", labelHe: "קַר לִי", labelEn: "Cold", labelEs: "Tengo frío", speechHe: "קַר לִי", cat: "adj", iconType: "emoji", iconValue: "🥶" },
+                { id: "fe6", type: "action", labelHe: "חַם לִי", labelEn: "Hot", labelEs: "Tengo calor", speechHe: "חַם לִי", cat: "adj", iconType: "emoji", iconValue: "🥵" },
+                { id: "fe7", type: "action", labelHe: "רָעֵב", labelEn: "Hungry", labelEs: "Hambriento", speechHe: "רָעֵב", cat: "adj", iconType: "emoji", iconValue: "🤤" },
+                { id: "fe8", type: "action", labelHe: "מַסְפִּיק", labelEn: "Enough", labelEs: "Basta", speechHe: "מַסְפִּיק", cat: "adj", iconType: "emoji", iconValue: "🛑" }
+              ]
+            },
+
+            // תת-לוח: פעילויות ומשחק
+            "board_activities": {
+              id: "board_activities",
+              parentBoardId: "board_main",
+              titleHe: "פְּעִילוּיוֹת וּמִשְׂחָק",
+              titleEn: "Activities & Play",
+              titleEs: "Actividades y Juego",
+              cards: [
+                { id: "ac1", type: "action", labelHe: "לְשַׂחֵק", labelEn: "Play", labelEs: "Jugar", speechHe: "לְשַׂחֵק", cat: "verb", iconType: "emoji", iconValue: "🎮" },
+                { id: "ac2", type: "action", labelHe: "כַּדּוּר", labelEn: "Ball", labelEs: "Pelota", speechHe: "כַּדּוּר", cat: "noun", iconType: "emoji", iconValue: "⚽" },
+                { id: "ac3", type: "action", labelHe: "סֵפֶר", labelEn: "Book", labelEs: "Libro", speechHe: "סֵפֶר", cat: "noun", iconType: "emoji", iconValue: "📖" },
+                { id: "ac4", type: "action", labelHe: "טַאבְּלֶט", labelEn: "Tablet", labelEs: "Tableta", speechHe: "טַאבְּלֶט", cat: "noun", iconType: "emoji", iconValue: "📱" },
+                { id: "ac5", type: "action", labelHe: "לִשְׁמֹעַ שִׁיר", labelEn: "Listen Music", labelEs: "Música", speechHe: "לִשְׁמֹעַ שִׁיר", cat: "verb", iconType: "emoji", iconValue: "🎵" },
+                { id: "ac6", type: "action", labelHe: "לְצַיֵּר", labelEn: "Draw", labelEs: "Dibujar", speechHe: "לְצַיֵּר", cat: "verb", iconType: "emoji", iconValue: "🎨" },
+                { id: "ac7", type: "action", labelHe: "לָנוּחַ", labelEn: "Rest", labelEs: "Descansar", speechHe: "לָנוּחַ", cat: "verb", iconType: "emoji", iconValue: "🛌" },
+                { id: "ac8", type: "action", labelHe: "לְחַבֵּק", labelEn: "Hug", labelEs: "Abrazar", speechHe: "לְחַבֵּק", cat: "verb", iconType: "emoji", iconValue: "🫂" }
+              ]
+            },
+
+            // תת-לוח: מקומות וחדרים
+            "board_places": {
+              id: "board_places",
+              parentBoardId: "board_main",
+              titleHe: "מְקוֹמוֹת וַחֲדָרִים",
+              titleEn: "Places & Rooms",
+              titleEs: "Lugares y Espacios",
+              cards: [
+                { id: "pl1", type: "action", labelHe: "הַבַּיְתָה", labelEn: "Home", labelEs: "Casa", speechHe: "הַבַּיְתָה", cat: "place", iconType: "emoji", iconValue: "🏠" },
+                { id: "pl2", type: "action", labelHe: "כִּתָּה", labelEn: "Classroom", labelEs: "Clase", speechHe: "כִּתָּה", cat: "place", iconType: "emoji", iconValue: "🏫" },
+                { id: "pl3", type: "action", labelHe: "חָצֵר", labelEn: "Yard", labelEs: "Patio", speechHe: "חָצֵר", cat: "place", iconType: "emoji", iconValue: "🌳" },
+                { id: "pl4", type: "action", labelHe: "בְּרֵכָה", labelEn: "Pool", labelEs: "Piscina", speechHe: "בְּרֵכָה", cat: "place", iconType: "emoji", iconValue: "🏊‍♂️" },
+                { id: "pl5", type: "action", labelHe: "שֵׁירוּתִים", labelEn: "Restroom", labelEs: "Baño", speechHe: "שֵׁירוּתִים", cat: "place", iconType: "emoji", iconValue: "🚽" },
+                { id: "pl6", type: "action", labelHe: "חֶדֶר שַׁלְוָה", labelEn: "Quiet Room", labelEs: "Sala de calma", speechHe: "חֶדֶר שַׁלְוָה", cat: "place", iconType: "emoji", iconValue: "🧘‍♂️" }
+              ]
+            }
+          }
+        }
+      ]
+    };
+
+    const appState = {
+      data: null,
+      mode: "me",
+      currentCategory: "all",
+      currentSentence: [],
+      syncBroadcastChannel: null,
+
+      init() {
+        const saved = localStorage.getItem("aac_app_state_v2");
+        if (saved) {
+          try {
+            this.data = JSON.parse(saved);
+          } catch(e) {
+            this.data = JSON.parse(JSON.stringify(DEFAULT_APP_DATA));
+          }
+        } else {
+          this.data = JSON.parse(JSON.stringify(DEFAULT_APP_DATA));
+        }
+
+        if ("BroadcastChannel" in window) {
+          this.syncBroadcastChannel = new BroadcastChannel("aac_cloud_sync_bus");
+          this.syncBroadcastChannel.onmessage = (event) => {
+            if (event.data && event.data.type === "STATE_UPDATED") {
+              this.data = event.data.payload;
+              ui.renderBoard();
+              ui.renderProfileSelect();
+              ui.showToast("עודכן בזמן אמת ממכשיר/חלון מקביל 🔄");
+            }
+          };
+        }
+
+        this.saveLocally(false);
+      },
+
+      saveLocally(broadcast = true) {
+        localStorage.setItem("aac_app_state_v2", JSON.stringify(this.data));
+        cloudSync.notifyChange();
+        if (broadcast && this.syncBroadcastChannel) {
+          this.syncBroadcastChannel.postMessage({
+            type: "STATE_UPDATED",
+            payload: this.data
+          });
+        }
+      },
+
+      getActiveProfile() {
+        return this.data.profiles.find(p => p.id === this.data.activeProfileId) || this.data.profiles[0];
+      },
+
+      getActiveBoard() {
+        const profile = this.getActiveProfile();
+        return profile.boards[this.data.activeBoardId] || profile.boards["board_main"] || Object.values(profile.boards)[0];
+      },
+
+      switchProfile(profileId) {
+        if (!this.data.profiles.some(p => p.id === profileId)) return;
+        this.data.activeProfileId = profileId;
+        this.data.activeBoardId = "board_main";
+        this.saveLocally();
+        ui.renderProfileSelect();
+        ui.renderBoard();
+        ui.showToast(`הפרופיל הוחלף ל-${this.getActiveProfile().name} 👤`);
+      },
+
+      resetToFactoryDefaults() {
+        if (confirm("האם לאפס את כל הלוחות והפרופילים להגדרות ברירת המחדל? פעולה זו תמחק שינויים מקומיים.")) {
+          this.data = JSON.parse(JSON.stringify(DEFAULT_APP_DATA));
+          this.saveLocally();
+          ui.closeModal("shareModal");
+          ui.renderProfileSelect();
+          ui.renderBoard();
+          ui.showToast("המערכת אופסה לברירת המחדל בהצלחה 🔄");
+        }
+      },
+
+      exportFullJSON() {
+        const str = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.data, null, 2));
+        const a = document.createElement("a");
+        a.href = str;
+        a.download = `aac_board_backup_${new Date().toISOString().slice(0,10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        ui.showToast("קובץ הגיבוי הורד בהצלחה 💾");
+      },
+
+      importFromFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const parsed = JSON.parse(e.target.result);
+            if (parsed.profiles) {
+              this.data = parsed;
+            } else if (Array.isArray(parsed)) {
+              const prof = this.getActiveProfile();
+              prof.boards["board_main"].cards = parsed;
+            }
+            this.saveLocally();
+            ui.renderProfileSelect();
+            ui.renderBoard();
+            ui.closeModal("shareModal");
+            ui.showToast("הלוח נטען בהצלחה מלאה! 📂");
+          } catch(err) {
+            alert("שגיאה בקריאת הקובץ. ודאו שזהו קובץ תקין.");
+          }
+        };
+        reader.readAsText(file);
+      },
+
+      exportToOBF() {
+        const board = this.getActiveBoard();
+        const obf = {
+          format: "open-board-0.1",
+          id: board.id,
+          locale: i18n.currentLang,
+          name: board[`title${i18n.currentLang.charAt(0).toUpperCase() + i18n.currentLang.slice(1)}`] || board.titleHe,
+          buttons: board.cards.map((c, idx) => ({
+            id: c.id,
+            label: c[`label${i18n.currentLang.charAt(0).toUpperCase() + i18n.currentLang.slice(1)}`] || c.labelHe,
+            vocalization: c.speechHe || c.labelHe,
+            emoji: c.iconValue
+          }))
+        };
+
+        const str = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(obf, null, 2));
+        const a = document.createElement("a");
+        a.href = str;
+        a.download = `${board.id}.obf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        ui.showToast("לוח בפורמט OBF יוצא בהצלחה 🌐");
+      },
+
+      shareViaUrlLink() {
+        try {
+          const minimal = {
+            p: this.data.activeProfileId,
+            b: this.data.activeBoardId,
+            c: this.getActiveBoard().cards
+          };
+          const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(minimal))));
+          const shareUrl = `${window.location.origin}${window.location.pathname}#sync=${b64}`;
+
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(shareUrl);
+            ui.showToast("הקישור הועתק ללוח! 📋");
+          } else {
+            prompt("העתק קישור זה:", shareUrl);
+          }
+        } catch(e) {
+          alert("שגיאה ביצירת קישור שיתוף.");
+        }
+      }
+    };
+
+    /* ========================================================
+       4. ניהול מנויים, רישיונות וערכות רקעים ("בקראונד למנויים")
+       ======================================================== */
+    const subscriptionManager = {
+      state: {
+        tier: "pro", // "free", "pro", "school"
+        name: "קלינאי תקשורת מוביל",
+        email: "slp@kol-umabat.org",
+        role: "therapist",
+        theme: "default",
+        customBg: null,
+        activeLicenseKey: "AAC-PRO-2026-VIP"
+      },
+
+      init() {
+        const saved = localStorage.getItem("aac_subscription_state");
+        if (saved) {
+          try {
+            this.state = { ...this.state, ...JSON.parse(saved) };
+          } catch(e) {}
+        }
+        this.applyTheme(this.state.theme, this.state.customBg);
+        this.updateBadgeUI();
+      },
+
+      save() {
+        localStorage.setItem("aac_subscription_state", JSON.stringify(this.state));
+        this.updateBadgeUI();
+      },
+
+      updateBadgeUI() {
+        const badge = document.getElementById("subTierBadge");
+        const icon = document.getElementById("subTierIcon");
+        const text = document.getElementById("subTierText");
+        if (!badge) return;
+
+        if (this.state.tier === "school") {
+          badge.className = "sub-tier-badge";
+          badge.style.background = "linear-gradient(135deg, #7c3aed, #5f27cd)";
+          if (icon) icon.textContent = "🏫";
+          if (text) text.textContent = "מנוי מוסדי";
+        } else if (this.state.tier === "pro") {
+          badge.className = "sub-tier-badge";
+          badge.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
+          if (icon) icon.textContent = "⭐";
+          if (text) text.textContent = "מנוי PRO";
+        } else {
+          badge.className = "sub-tier-badge free";
+          badge.style.background = "#f1f5f9";
+          if (icon) icon.textContent = "🆓";
+          if (text) text.textContent = "שדרג ל-PRO";
+        }
+      },
+
+      switchTab(tab) {
+        document.getElementById("tabBtnSubPlans").classList.toggle("active", tab === "plans");
+        document.getElementById("tabBtnSubReg").classList.toggle("active", tab === "reg");
+        document.getElementById("tabBtnSubThemes").classList.toggle("active", tab === "themes");
+
+        document.getElementById("subTabPlans").style.display = tab === "plans" ? "block" : "none";
+        document.getElementById("subTabReg").style.display = tab === "reg" ? "block" : "none";
+        document.getElementById("subTabThemes").style.display = tab === "themes" ? "block" : "none";
+
+        if (tab === "reg") {
+          document.getElementById("subUserNameInput").value = this.state.name || "";
+          document.getElementById("subUserEmailInput").value = this.state.email || "";
+          document.getElementById("subUserRoleSelect").value = this.state.role || "therapist";
+        }
+      },
+
+      selectTier(tier) {
+        this.state.tier = tier;
+        this.save();
+        ui.showToast(`נבחר מסלול: ${tier.toUpperCase()} ✨`);
+      },
+
+      applyLicenseKey() {
+        const input = document.getElementById("licenseKeyInput");
+        const key = input.value.trim().toUpperCase();
+        if (!key) {
+          alert("נא להזין מפתח רישיון.");
+          return;
+        }
+
+        if (key.includes("SCHOOL") || key.includes("CLINIC")) {
+          this.state.tier = "school";
+          this.state.activeLicenseKey = key;
+          this.save();
+          ui.showToast("רישיון מוסדי הופעל בהצלחה! 🏫✨");
+        } else {
+          this.state.tier = "pro";
+          this.state.activeLicenseKey = key;
+          this.save();
+          ui.showToast("רישיון PRO הופעל בהצלחה לכל היכולות! ⭐✨");
+        }
+        input.value = "";
+      },
+
+      saveRegistration() {
+        this.state.name = document.getElementById("subUserNameInput").value.trim() || this.state.name;
+        this.state.email = document.getElementById("subUserEmailInput").value.trim() || this.state.email;
+        this.state.role = document.getElementById("subUserRoleSelect").value;
+        this.save();
+        ui.showToast("פרטי המנוי עודכנו בהצלחה! 👤");
+      },
+
+      setTheme(themeName, el = null) {
+        this.state.theme = themeName;
+        this.state.customBg = null;
+        this.applyTheme(themeName);
+        this.save();
+
+        document.querySelectorAll(".theme-swatch").forEach(s => s.classList.remove("active"));
+        if (el) el.classList.add("active");
+        ui.showToast(`ערכת נושא הוחלפה: ${themeName} 🎨`);
+      },
+
+      applyTheme(themeName, customBgUrl = null) {
+        document.body.classList.remove("theme-ocean", "theme-mint", "theme-rose", "theme-wood", "theme-dark");
+        if (themeName !== "default") {
+          document.body.classList.add(`theme-${themeName}`);
+        }
+
+        if (customBgUrl) {
+          document.body.style.backgroundImage = `url("${customBgUrl}")`;
+        } else {
+          document.body.style.backgroundImage = "none";
+        }
+      },
+
+      handleCustomBgUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const bgUrl = e.target.result;
+          this.state.customBg = bgUrl;
+          this.applyTheme(this.state.theme, bgUrl);
+          this.save();
+          ui.showToast("רקע מותאם אישית למנוי הוחל בהצלחה! 🖼️✨");
+        };
+        reader.readAsDataURL(file);
+      },
+
+      resetCustomBg() {
+        this.state.customBg = null;
+        this.applyTheme(this.state.theme, null);
+        this.save();
+        ui.showToast("הרקע אופס לברירת המחדל 🎨");
+      }
+    };
+
+    /* ========================================================
+       5. סנכרון ענן בזמן אמת (Real-Time Cloud Sync)
+       ======================================================== */
+    const cloudSync = {
+      roomKey: "",
+      syncStatus: "online",
+
+      init() {
+        let key = localStorage.getItem("aac_sync_room_key");
+        if (!key) {
+          key = "ROOM-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+          localStorage.setItem("aac_sync_room_key", key);
+        }
+        this.roomKey = key;
+        const keyElem = document.getElementById("syncRoomKeyInput");
+        if (keyElem) keyElem.value = key;
+
+        window.addEventListener("online", () => this.updateNetworkStatus());
+        window.addEventListener("offline", () => this.updateNetworkStatus());
+        this.updateNetworkStatus();
+
+        this.checkUrlHash();
+      },
+
+      updateNetworkStatus() {
+        const isOnline = navigator.onLine;
+        const dot = document.getElementById("syncIndicatorDot");
+        const text = document.getElementById("syncStatusText");
+
+        if (isOnline) {
+          this.syncStatus = "online";
+          if (dot) dot.className = "sync-dot";
+          if (text) text.textContent = i18n.t("syncOnline");
+        } else {
+          this.syncStatus = "offline";
+          if (dot) dot.className = "sync-dot offline";
+          if (text) text.textContent = i18n.t("syncOffline");
+        }
+      },
+
+      notifyChange() {
+        const dot = document.getElementById("syncIndicatorDot");
+        const text = document.getElementById("syncStatusText");
+        if (dot) dot.className = "sync-dot syncing";
+        if (text) text.textContent = i18n.t("syncSyncing");
+
+        setTimeout(() => {
+          this.updateNetworkStatus();
+        }, 600);
+      },
+
+      triggerSyncNow() {
+        this.notifyChange();
+        setTimeout(() => {
+          ui.showToast("הנתונים סונכרנו לענן בהצלחה! 🟢");
+          ui.closeModal("cloudSyncModal");
+        }, 400);
+      },
+
+      copySyncKey() {
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(this.roomKey);
+          ui.showToast("מזהה הסנכרון הועתק! 📋");
+        }
+      },
+
+      joinRoom() {
+        const input = document.getElementById("joinRoomKeyInput");
+        const key = input.value.trim().toUpperCase();
+        if (!key) return;
+        this.roomKey = key;
+        localStorage.setItem("aac_sync_room_key", key);
+        document.getElementById("syncRoomKeyInput").value = key;
+        input.value = "";
+        this.triggerSyncNow();
+        ui.showToast(`מחובר כעת למזהה סנכרון: ${key} ☁️`);
+      },
+
+      checkUrlHash() {
+        if (window.location.hash.startsWith("#sync=")) {
+          try {
+            const raw = window.location.hash.replace("#sync=", "");
+            const decoded = JSON.parse(decodeURIComponent(escape(atob(raw))));
+            if (decoded && decoded.c) {
+              const prof = appState.getActiveProfile();
+              prof.boards["board_main"].cards = decoded.c;
+              appState.saveLocally();
+              window.location.hash = "";
+              ui.showToast("לוח משותף נטען מקישור! 🌟");
+            }
+          } catch(e) {}
+        }
+      }
+    };
+
+    /* ========================================================
+       6. מנוע דיבור וקול (TTS: Text-to-Speech)
+       ======================================================== */
+    const tts = {
+      synth: window.speechSynthesis,
+      rate: 0.75,
+      pitch: 1.0,
+      delay: 350,
+
+      init() {
+        const saved = localStorage.getItem("aac_voice_settings");
+        if (saved) {
+          try {
+            const conf = JSON.parse(saved);
+            this.rate = conf.rate || 0.75;
+            this.pitch = conf.pitch || 1.0;
+            this.delay = conf.delay || 350;
+          } catch(e) {}
+        }
+
+        if (this.synth) {
+          if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = () => this.populateVoiceList();
+          }
+        }
+      },
+
+      populateVoiceList() {
+        const dropdown = document.getElementById("voiceSelectDropdown");
+        if (!dropdown || !this.synth) return;
+
+        const voices = this.synth.getVoices();
+        dropdown.innerHTML = "";
+
+        const langPrefix = i18n.currentLang === "he" ? "he" : i18n.currentLang === "es" ? "es" : "en";
+        const matched = voices.filter(v => v.lang.toLowerCase().startsWith(langPrefix));
+
+        if (matched.length > 0) {
+          matched.forEach(v => {
+            const opt = document.createElement("option");
+            opt.value = v.voiceURI;
+            opt.textContent = `${v.name} (${v.lang})`;
+            dropdown.appendChild(opt);
+          });
+        } else {
+          const opt = document.createElement("option");
+          opt.value = "";
+          opt.textContent = `קול ברירת מחדל (${i18n.currentLang.toUpperCase()})`;
+          dropdown.appendChild(opt);
+        }
+
+        const rateSlider = document.getElementById("voiceRateSlider");
+        if (rateSlider) {
+          rateSlider.value = this.rate;
+          document.getElementById("voiceRateDisplay").textContent = `${this.rate}×`;
+          document.getElementById("voicePitchSlider").value = this.pitch;
+          document.getElementById("voicePitchDisplay").textContent = this.pitch;
+          document.getElementById("voiceDelaySlider").value = this.delay;
+          document.getElementById("voiceDelayDisplay").textContent = `${this.delay} מ״ש`;
+        }
+      },
+
+      updateSettingsFromUI() {
+        this.rate = parseFloat(document.getElementById("voiceRateSlider").value);
+        this.pitch = parseFloat(document.getElementById("voicePitchSlider").value);
+        this.delay = parseInt(document.getElementById("voiceDelaySlider").value);
+
+        document.getElementById("voiceRateDisplay").textContent = `${this.rate}×`;
+        document.getElementById("voicePitchDisplay").textContent = this.pitch;
+        document.getElementById("voiceDelayDisplay").textContent = `${this.delay} מ״ש`;
+
+        localStorage.setItem("aac_voice_settings", JSON.stringify({
+          rate: this.rate,
+          pitch: this.pitch,
+          delay: this.delay
+        }));
+      },
+
+      speak(text, onEndCallback = null) {
+        if (!this.synth || !text) {
+          if (onEndCallback) onEndCallback();
+          return;
+        }
+
+        this.synth.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        const langMap = { he: "he-IL", en: "en-US", es: "es-ES" };
+        utterance.lang = langMap[i18n.currentLang] || "he-IL";
+        utterance.rate = this.rate;
+        utterance.pitch = this.pitch;
+
+        const voices = this.synth.getVoices();
+        const prefix = utterance.lang.slice(0, 2);
+        const voice = voices.find(v => v.lang.toLowerCase().startsWith(prefix));
+        if (voice) utterance.voice = voice;
+
+        let finished = false;
+        const done = () => {
+          if (!finished) {
+            finished = true;
+            if (onEndCallback) onEndCallback();
+          }
+        };
+
+        utterance.onend = done;
+        utterance.onerror = done;
+        setTimeout(done, 4000);
+
+        this.synth.speak(utterance);
+      },
+
+      previewVoice() {
+        this.updateSettingsFromUI();
+        const sample = i18n.currentLang === "he" ? "אֲנִי רוֹצֶה לְשַׂחֵק בְּיַחַד" : i18n.currentLang === "es" ? "Yo quiero jugar juntos" : "I want to play together";
+        this.speak(sample);
+      }
+    };
+
+    /* ========================================================
+       7. הקלטת אודיו עצמאית של מילים למאגר (Voice Recording)
+       ======================================================== */
+    const voiceRecorder = {
+      mediaRecorder: null,
+      audioChunks: [],
+      currentAudioData: null,
+      isRecording: false,
+      timerInterval: null,
+      secondsRecorded: 0,
+
+      async toggleRecording() {
+        if (this.isRecording) {
+          this.stopRecording();
+        } else {
+          await this.startRecording();
+        }
+      },
+
+      async startRecording() {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          this.audioChunks = [];
+          this.mediaRecorder = new MediaRecorder(stream);
+
+          this.mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) this.audioChunks.push(e.data);
+          };
+
+          this.mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(this.audioChunks, { type: "audio/webm" });
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              this.currentAudioData = reader.result;
+              document.getElementById("cardAudioData").value = this.currentAudioData;
+              this.updateUI();
+              ui.showToast("ההקלטה הקולית נשמרה בהצלחה! 🎙️");
+            };
+            reader.readAsDataURL(audioBlob);
+
+            stream.getTracks().forEach(track => track.stop());
+          };
+
+          this.mediaRecorder.start();
+          this.isRecording = true;
+          this.secondsRecorded = 0;
+          this.timerInterval = setInterval(() => {
+            this.secondsRecorded++;
+            const lbl = document.getElementById("recordBtnText");
+            if (lbl) lbl.textContent = `${i18n.t("stopRecordBtn")} (${this.secondsRecorded}s)`;
+          }, 1000);
+
+          document.getElementById("recordIcon").textContent = "⏹️";
+          document.getElementById("btnRecordVoice").style.background = "#fee2e2";
+          document.getElementById("recordingStatusLabel").textContent = "מקליט כעת... דברו עכשיו 🔴";
+          document.getElementById("recordingStatusLabel").style.color = "#dc2626";
+        } catch(err) {
+          alert("לא ניתן לגשת למיקרופון. אנא ודאו שניתנה הרשאת מיקרופון בדפדפן.");
+        }
+      },
+
+      stopRecording() {
+        if (this.mediaRecorder && this.isRecording) {
+          this.mediaRecorder.stop();
+          this.isRecording = false;
+          clearInterval(this.timerInterval);
+          document.getElementById("recordIcon").textContent = "🔴";
+          document.getElementById("recordBtnText").textContent = i18n.t("recordVoiceBtn");
+        }
+      },
+
+      playPreview() {
+        if (!this.currentAudioData) return;
+        const a = new Audio(this.currentAudioData);
+        a.play().catch(e => console.warn(e));
+      },
+
+      clearRecording() {
+        this.currentAudioData = null;
+        document.getElementById("cardAudioData").value = "";
+        this.updateUI();
+        ui.showToast("ההקלטה הוסרה - הכרטיסייה תושמע בהקראת TTS 🔊");
+      },
+
+      handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.currentAudioData = e.target.result;
+          document.getElementById("cardAudioData").value = this.currentAudioData;
+          this.updateUI();
+          ui.showToast("קובץ האודיו נטען בהצלחה! 🎵");
+        };
+        reader.readAsDataURL(file);
+      },
+
+      setInitial(audioData) {
+        this.currentAudioData = audioData || null;
+        const input = document.getElementById("cardAudioData");
+        if (input) input.value = audioData || "";
+        this.updateUI();
+      },
+
+      updateUI() {
+        const hasAudio = !!this.currentAudioData;
+        const btnPlay = document.getElementById("btnPlayVoice");
+        const btnClear = document.getElementById("btnClearVoice");
+        const statusLabel = document.getElementById("recordingStatusLabel");
+
+        if (btnPlay) btnPlay.style.display = hasAudio ? "inline-flex" : "none";
+        if (btnClear) btnClear.style.display = hasAudio ? "inline-flex" : "none";
+
+        if (statusLabel) {
+          if (hasAudio) {
+            statusLabel.textContent = "הקלטת קול אישית שמורה במאגר ✔";
+            statusLabel.style.color = "#10ac84";
+          } else {
+            statusLabel.textContent = "אין הקלטה (משמיע ב-TTS)";
+            statusLabel.style.color = "#64748b";
+          }
+        }
+      }
+    };
+
+    /* ========================================================
+       8. אודיו לטקסט (Speech-to-Text / STT) - דיבור לכרטיסיות
+       ======================================================== */
+    const speechToText = {
+      recognition: null,
+      isListening: false,
+
+      init() {
+        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRec) {
+          this.recognition = new SpeechRec();
+          this.recognition.continuous = false;
+          this.recognition.interimResults = false;
+
+          this.recognition.onstart = () => {
+            this.isListening = true;
+            this.updateUI();
+          };
+
+          this.recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            const input = document.getElementById("sttTextInput");
+            if (input) input.value = transcript;
+            ui.showToast(`זוהה דיבור: "${transcript}" 🎙️`);
+            this.decodeTextToBoard(transcript);
+          };
+
+          this.recognition.onerror = (event) => {
+            console.warn("STT Error:", event.error);
+            this.isListening = false;
+            this.updateUI();
+            if (event.error === "not-allowed") {
+              alert("גישה למיקרופון נדחתה. יש לאפשר גישה למיקרופון בהגדרות הדפדפן.");
+            }
+          };
+
+          this.recognition.onend = () => {
+            this.isListening = false;
+            this.updateUI();
+          };
+        }
+      },
+
+      toggleListening() {
+        if (!this.recognition) {
+          alert("זיהוי דיבור אינו נתמך בדפדפן זה. מומלץ להשתמש ב-Google Chrome, Microsoft Edge או Safari.");
+          return;
+        }
+
+        if (this.isListening) {
+          this.recognition.stop();
+        } else {
+          const langMap = { he: "he-IL", en: "en-US", es: "es-ES" };
+          this.recognition.lang = langMap[i18n.currentLang] || "he-IL";
+          soundFx.playClick();
+          try {
+            this.recognition.start();
+          } catch(e) {
+            console.error(e);
+          }
+        }
+      },
+
+      updateUI() {
+        const btn = document.getElementById("btnVoiceListen");
+        const feedback = document.getElementById("sttListeningFeedback");
+        const feedbackText = document.getElementById("sttFeedbackText");
+
+        if (btn) {
+          btn.classList.toggle("listening", this.isListening);
+          const icon = document.getElementById("sttMicIcon");
+          const text = document.getElementById("sttMicText");
+          if (this.isListening) {
+            if (icon) icon.textContent = "⏹️";
+            if (text) text.textContent = "מקשיב לדיבור...";
+          } else {
+            if (icon) icon.textContent = "🎙️";
+            if (text) text.textContent = i18n.t("voiceToBoardBtn") || "דבר אל הלוח (אודיו לטקסט)";
+          }
+        }
+
+        if (feedback) {
+          feedback.style.display = this.isListening ? "flex" : "none";
+          if (feedbackText) {
+            feedbackText.textContent = i18n.currentLang === "he"
+              ? "מקשיב לדיבור... דברו כעת ברור (למשל: 'אני רוצה לשתות מים קרים')"
+              : i18n.currentLang === "es"
+              ? "Escuchando... Hable con claridad (ej. 'Yo quiero agua')"
+              : "Listening... Speak clearly now (e.g. 'I want cold water')";
+          }
+        }
+      },
+
+      decodeCurrentText() {
+        const input = document.getElementById("sttTextInput");
+        if (!input || !input.value.trim()) return;
+        this.decodeTextToBoard(input.value.trim());
+      },
+
+      stripNikud(text) {
+        if (!text) return "";
+        return text.replace(/[\u0591-\u05C7]/g, "").trim().toLowerCase();
+      },
+
+      decodeTextToBoard(rawText) {
+        if (!rawText) return;
+        soundFx.playClick();
+
+        const words = rawText.split(/\s+/);
+        const matchedCards = [];
+        const profile = appState.getActiveProfile();
+        const currentBoard = appState.getActiveBoard();
+
+        const allProfileCards = [];
+        Object.values(profile.boards).forEach(b => {
+          allProfileCards.push(...b.cards);
+        });
+
+        words.forEach((word, index) => {
+          const cleanWord = word.replace(/[.,?!;:״'"]/g, "").trim();
+          if (!cleanWord) return;
+
+          const stripped = this.stripNikud(cleanWord);
+
+          // 1. בדיקה בלוח הנוכחי
+          let found = currentBoard.cards.find(c => {
+            return this.stripNikud(c.labelHe) === stripped || 
+                   this.stripNikud(c.speechHe) === stripped || 
+                   (c.labelEn && c.labelEn.toLowerCase() === stripped) ||
+                   (c.labelEs && c.labelEs.toLowerCase() === stripped);
+          });
+
+          // 2. בדיקה בכל הלוחות של הפרופיל
+          if (!found) {
+            found = allProfileCards.find(c => {
+              return this.stripNikud(c.labelHe) === stripped || 
+                     this.stripNikud(c.speechHe) === stripped || 
+                     (c.labelEn && c.labelEn.toLowerCase() === stripped) ||
+                     (c.labelEs && c.labelEs.toLowerCase() === stripped);
+            });
+          }
+
+          // 3. בדיקה במאגר הכללי (Online presets)
+          if (!found) {
+            const preset = ONLINE_SYMBOL_LIBRARY_PRESETS.find(p => {
+              return this.stripNikud(p.labelHe) === stripped || 
+                     p.labelEn.toLowerCase() === stripped || 
+                     p.labelEs.toLowerCase() === stripped;
+            });
+            if (preset) {
+              found = {
+                id: `dyn_preset_${Date.now()}_${index}`,
+                type: "action",
+                labelHe: preset.labelHe,
+                labelEn: preset.labelEn,
+                labelEs: preset.labelEs,
+                speechHe: preset.labelHe,
+                cat: preset.cat,
+                iconType: "emoji",
+                iconValue: preset.emoji
+              };
+            }
+          }
+
+          // 4. אם לא נמצא כלל - יצירת כרטיסייה דינמית
+          if (!found) {
+            found = {
+              id: `dyn_word_${Date.now()}_${index}`,
+              type: "action",
+              labelHe: cleanWord,
+              labelEn: cleanWord,
+              labelEs: cleanWord,
+              speechHe: cleanWord,
+              cat: "noun",
+              iconType: "emoji",
+              iconValue: "💬"
+            };
+          }
+
+          matchedCards.push(found);
+        });
+
+        if (matchedCards.length > 0) {
+          appState.currentSentence = matchedCards;
+          ui.renderSentenceStrip();
+          ui.showToast(`פוענחו ${matchedCards.length} כרטיסיות ויזואליות למשפט! 🧩✨`);
+          ui.speakFullSentence();
+        }
+      }
+    };
+
+    function dictateCardLabel() {
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRec) {
+        alert("זיהוי דיבור אינו נתמך בדפדפן זה.");
+        return;
+      }
+      const recog = new SpeechRec();
+      recog.lang = i18n.currentLang === "he" ? "he-IL" : i18n.currentLang === "es" ? "es-ES" : "en-US";
+      recog.onresult = (e) => {
+        const text = e.results[0][0].transcript.trim();
+        if (i18n.currentLang === "he") {
+          document.getElementById("cardLabelHe").value = text;
+          document.getElementById("cardSpeechPronounce").value = text;
+        } else if (i18n.currentLang === "es") {
+          document.getElementById("cardLabelEs").value = text;
+        } else {
+          document.getElementById("cardLabelEn").value = text;
+        }
+        ui.showToast(`הוכתבה מילה: "${text}" 🎙️`);
+      };
+      recog.start();
+      ui.showToast("דברו כעת את שם המילה... 🎙️");
+    }
+
+    /* ========================================================
+       9. צליל מגע מוחשי ורטט אנדרואיד (Tactile Audio & Haptics)
+       ======================================================== */
+    const soundFx = {
+      ctx: null,
+      playClick() {
+        // רטט פיזי למכשירי אנדרואיד ומסכי מגע
+        if ("vibrate" in navigator) {
+          try {
+            navigator.vibrate(25);
+          } catch(e) {}
+        }
+
+        try {
+          if (!this.ctx) {
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+          }
+          if (this.ctx.state === "suspended") {
+            this.ctx.resume();
+          }
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(550, this.ctx.currentTime + 0.08);
+
+          gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.09);
+        } catch(e) {}
+      }
+    };
+
+    /* ========================================================
+       10. ניהול ממשק המשתמש (UI Controller & Rendering)
+       ======================================================== */
+    const ui = {
+      enteredPin: "",
+
+      init() {
+        i18n.init();
+        appState.init();
+        subscriptionManager.init();
+        cloudSync.init();
+        tts.init();
+        speechToText.init();
+
+        this.renderProfileSelect();
+        this.renderBoard();
+        this.renderSentenceStrip();
+        this.initPWA();
+        this.initDesktopShortcuts();
+      },
+
+      initPWA() {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('./sw.js').then(() => {
+            console.log("Service Worker Active for Offline AAC");
+          }).catch(err => console.log("SW registration failed", err));
+        }
+      },
+
+      initDesktopShortcuts() {
+        window.addEventListener("keydown", (e) => {
+          if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+
+          // Space: השמעת משפט
+          if (e.code === "Space") {
+            e.preventDefault();
+            this.speakFullSentence();
+          }
+          // Backspace: מחיקת מילה
+          else if (e.code === "Backspace") {
+            e.preventDefault();
+            this.removeLastCardFromSentence();
+          }
+          // Delete: ניקוי משפט
+          else if (e.code === "Delete") {
+            e.preventDefault();
+            this.clearSentence();
+          }
+          // Escape: סגירת מודאל פתוח
+          else if (e.code === "Escape") {
+            document.querySelectorAll(".modal-overlay.active").forEach(m => m.classList.remove("active"));
+          }
+          // Alt + M: מיקרופון דיבור (STT)
+          else if (e.altKey && (e.code === "KeyM" || e.key === "צ")) {
+            e.preventDefault();
+            speechToText.toggleListening();
+          }
+          // Alt + P: הדפסה
+          else if (e.altKey && (e.code === "KeyP" || e.key === "פ")) {
+            e.preventDefault();
+            window.print();
+          }
+          // מקשים 1 עד 9: בחירה מהירה של כרטיסיות בלוח הפעיל
+          else if (e.key >= "1" && e.key <= "9") {
+            const index = parseInt(e.key) - 1;
+            const cards = document.querySelectorAll("#cardsGridContainer .aac-card:not(.card-add-placeholder)");
+            if (cards[index]) {
+              cards[index].click();
+            }
+          }
+        });
+      },
+
+      updateModeUI() {
+        const isMe = (appState.mode === "me");
+        document.body.className = `${isMe ? 'mode-me' : 'mode-profiles'} ${i18n.currentLang === 'he' ? 'rtl' : 'ltr'}`;
+        if (subscriptionManager.state.theme !== "default") {
+          document.body.classList.add(`theme-${subscriptionManager.state.theme}`);
+        }
+
+        const badge = document.getElementById("modeBadge");
+        const icon = document.getElementById("modeIcon");
+        const label = document.getElementById("modeLabel");
+        const btnText = document.getElementById("toggleModeText");
+        const btnIcon = document.getElementById("toggleModeIcon");
+
+        if (isMe) {
+          badge.className = "mode-badge me";
+          icon.textContent = "🔒";
+          label.textContent = i18n.t("meModeLabel");
+          btnIcon.textContent = "🔑";
+          btnText.textContent = i18n.t("switchToProfiles");
+        } else {
+          badge.className = "mode-badge profiles";
+          icon.textContent = "✏️";
+          label.textContent = i18n.t("profilesModeLabel");
+          btnIcon.textContent = "🔒";
+          btnText.textContent = i18n.t("lockToMeMode");
+        }
+      },
+
+      handleToggleModeClick() {
+        if (appState.mode === "me") {
+          this.openPinModal();
+        } else {
+          this.lockToMeMode();
+        }
+      },
+
+      openPinModal() {
+        this.enteredPin = "";
+        this.updatePinDisplay();
+        this.openModal("pinModal");
+      },
+
+      appendPinDigit(digit) {
+        if (this.enteredPin.length < 4) {
+          this.enteredPin += digit;
+          soundFx.playClick();
+          this.updatePinDisplay();
+          if (this.enteredPin.length === 4) {
+            setTimeout(() => this.submitPin(), 180);
+          }
+        }
+      },
+
+      clearPin() {
+        this.enteredPin = "";
+        soundFx.playClick();
+        this.updatePinDisplay();
+      },
+
+      updatePinDisplay() {
+        const disp = document.getElementById("pinDisplay");
+        if (!disp) return;
+        const masked = "•".repeat(this.enteredPin.length) + "-".repeat(4 - this.enteredPin.length);
+        disp.textContent = masked;
+      },
+
+      submitPin() {
+        const targetPin = appState.data.pinCode || "1234";
+        if (this.enteredPin === targetPin) {
+          appState.mode = "profiles";
+          this.updateModeUI();
+          this.closeModal("pinModal");
+          this.renderBoard();
+          this.showToast("מצב עריכה וניהול פרופילים פעיל! ✏️");
+        } else {
+          alert("קוד PIN שגוי. נסו שוב (ברירת מחדל: 1234)");
+          this.clearPin();
+        }
+      },
+
+      lockToMeMode() {
+        appState.mode = "me";
+        this.updateModeUI();
+        this.renderBoard();
+        this.showToast("ננעל ל-Me Mode בהצלחה! 🔒");
+      },
+
+      renderProfileSelect() {
+        const sel = document.getElementById("profileSelector");
+        if (!sel) return;
+        sel.innerHTML = "";
+        appState.data.profiles.forEach(p => {
+          const opt = document.createElement("option");
+          opt.value = p.id;
+          opt.textContent = `${p.avatar} ${p.name}`;
+          if (p.id === appState.data.activeProfileId) opt.selected = true;
+          sel.appendChild(opt);
+        });
+      },
+
+      renderBoard() {
+        const board = appState.getActiveBoard();
+        const container = document.getElementById("cardsGridContainer");
+        if (!container) return;
+        container.innerHTML = "";
+
+        this.renderBreadcrumbs(board);
+
+        const langSuffix = i18n.currentLang.charAt(0).toUpperCase() + i18n.currentLang.slice(1);
+        const filteredCards = (appState.currentCategory === "all")
+          ? board.cards
+          : board.cards.filter(c => c.cat === appState.currentCategory || c.cat === "folder");
+
+        filteredCards.forEach((card, index) => {
+          const cardElem = this.createCardElement(card, index);
+          container.appendChild(cardElem);
+        });
+
+        if (appState.mode === "profiles") {
+          const addPlaceholder = document.createElement("div");
+          addPlaceholder.className = "aac-card card-add-placeholder";
+          addPlaceholder.innerHTML = `<span>➕</span><p>${i18n.t("addSymbolBtn")}</p>`;
+          addPlaceholder.onclick = () => this.openNewCardModal();
+          container.appendChild(addPlaceholder);
+        }
+      },
+
+      renderBreadcrumbs(board) {
+        const box = document.getElementById("boardBreadcrumbs");
+        const backBtn = document.getElementById("btnBackBoard");
+        if (!box) return;
+
+        const langKey = "title" + i18n.currentLang.charAt(0).toUpperCase() + i18n.currentLang.slice(1);
+        const currentTitle = board[langKey] || board.titleHe;
+
+        if (board.id === "board_main") {
+          box.innerHTML = `<span>🏠</span> <span style="color:#222f3e;">${currentTitle}</span>`;
+          if (backBtn) backBtn.style.display = "none";
+        } else {
+          box.innerHTML = `
+            <span>🏠</span> 
+            <span class="crumb-link" onclick="ui.navigateToBoard('board_main')">${i18n.t("backToMain")}</span>
+            <span class="crumb-separator">/</span>
+            <span style="color:#0abde3;">📁 ${currentTitle}</span>
+          `;
+          if (backBtn) backBtn.style.display = "inline-flex";
+        }
+      },
+
+      navigateToBoard(boardId) {
+        const profile = appState.getActiveProfile();
+        if (!profile.boards[boardId]) return;
+        appState.data.activeBoardId = boardId;
+        soundFx.playClick();
+        this.renderBoard();
+      },
+
+      navigateBackBoard() {
+        const board = appState.getActiveBoard();
+        const targetId = board.parentBoardId || "board_main";
+        this.navigateToBoard(targetId);
+      },
+
+      createCardElement(card, index = -1) {
+        const el = document.createElement("div");
+        el.className = `aac-card cat-${card.cat}`;
+        el.dataset.id = card.id;
+
+        const langKey = "label" + i18n.currentLang.charAt(0).toUpperCase() + i18n.currentLang.slice(1);
+        const label = card[langKey] || card.labelHe || "";
+
+        let visualHtml = "";
+        if (card.iconType === "image" && card.iconValue) {
+          visualHtml = `<img src="${card.iconValue}" alt="${label}">`;
+        } else {
+          visualHtml = `<span class="emoji-3d">${card.iconValue || "💬"}</span>`;
+        }
+
+        const isFolder = (card.type === "subboard");
+        const folderBadgeHtml = isFolder ? `<div class="folder-badge">📁 ${i18n.t("subboardBadge")}</div>` : "";
+        const voiceBadgeHtml = (card.audioData && !isFolder) ? `<div class="voice-badge" title="הקלטת קול אישית">🎙️</div>` : "";
+        const shortcutTagHtml = (index >= 0 && index < 9) ? `<div class="key-shortcut-badge">${index + 1}</div>` : "";
+
+        const adminActionsHtml = `
+          <div class="card-admin-actions">
+            <button class="btn-card-action" onclick="event.stopPropagation(); ui.editCard('${card.id}')" title="ערוך">✏️</button>
+            <button class="btn-card-action" onclick="event.stopPropagation(); ui.deleteCard('${card.id}')" title="מחק">🗑️</button>
+          </div>
+        `;
+
+        el.innerHTML = `
+          ${folderBadgeHtml}
+          ${voiceBadgeHtml}
+          ${shortcutTagHtml}
+          ${adminActionsHtml}
+          <div class="card-visual">${visualHtml}</div>
+          <div class="card-label">${label}</div>
+        `;
+
+        el.addEventListener("click", () => {
+          soundFx.playClick();
+          el.classList.add("pressing");
+          setTimeout(() => el.classList.remove("pressing"), 120);
+
+          if (isFolder) {
+            tts.speak(label);
+            this.navigateToBoard(card.targetBoardId);
+          } else {
+            this.playCardSound(card);
+            this.addCardToSentence(card);
+          }
+        });
+
+        return el;
+      },
+
+      playCardSound(card, onComplete = null) {
+        if (card.audioData) {
+          try {
+            const audio = new Audio(card.audioData);
+            let finished = false;
+            const done = () => {
+              if (!finished) {
+                finished = true;
+                if (onComplete) onComplete();
+              }
+            };
+            audio.onended = done;
+            audio.onerror = () => {
+              const langKey = "label" + i18n.currentLang.charAt(0).toUpperCase() + i18n.currentLang.slice(1);
+              tts.speak(card.speechHe || card[langKey] || card.labelHe, onComplete);
+            };
+            setTimeout(done, 5000);
+            audio.play().catch(e => {
+              const langKey = "label" + i18n.currentLang.charAt(0).toUpperCase() + i18n.currentLang.slice(1);
+              tts.speak(card.speechHe || card[langKey] || card.labelHe, onComplete);
+            });
+            return;
+          } catch(err) {
+            console.warn("Audio play error", err);
+          }
+        }
+
+        const langKey = "label" + i18n.currentLang.charAt(0).toUpperCase() + i18n.currentLang.slice(1);
+        const text = card.speechHe || card[langKey] || card.labelHe;
+        tts.speak(text, onComplete);
+      },
+
+      filterCategory(cat, btnElem) {
+        appState.currentCategory = cat;
+        document.querySelectorAll(".category-chip").forEach(b => b.classList.remove("active"));
+        if (btnElem) btnElem.classList.add("active");
+        this.renderBoard();
+      },
+
+      addCardToSentence(card) {
+        appState.currentSentence.push(card);
+        this.renderSentenceStrip();
+        const strip = document.getElementById("sentenceCardsStrip");
+        if (strip) strip.scrollTo({ left: strip.scrollWidth, behavior: 'smooth' });
+      },
+
+      removeLastCardFromSentence() {
+        if (appState.currentSentence.length > 0) {
+          soundFx.playClick();
+          appState.currentSentence.pop();
+          this.renderSentenceStrip();
+        }
+      },
+
+      clearSentence() {
+        if (appState.currentSentence.length > 0) {
+          soundFx.playClick();
+          appState.currentSentence = [];
+          this.renderSentenceStrip();
+        }
+      },
+
+      renderSentenceStrip() {
+        const strip = document.getElementById("sentenceCardsStrip");
+        const display = document.getElementById("sentenceTextDisplay");
+        if (!strip || !display) return;
+
+        strip.innerHTML = "";
+        const langKey = "label" + i18n.currentLang.charAt(0).toUpperCase() + i18n.currentLang.slice(1);
+
+        if (appState.currentSentence.length === 0) {
+          display.textContent = i18n.t("sentenceEmpty");
+          return;
+        }
+
+        appState.currentSentence.forEach((card, index) => {
+          const cElem = this.createCardElement(card);
+          cElem.dataset.stripIndex = index;
+          strip.appendChild(cElem);
+        });
+
+        const fullSentence = appState.currentSentence.map(c => c[langKey] || c.labelHe).join(" ");
+        display.textContent = `${i18n.currentLang === 'he' ? 'משפט' : i18n.currentLang === 'es' ? 'Frase' : 'Sentence'}: ${fullSentence}`;
+      },
+
+      speakFullSentence() {
+        if (appState.currentSentence.length === 0) return;
+
+        let idx = 0;
+        const stripCards = document.querySelectorAll("#sentenceCardsStrip .aac-card");
+
+        const speakNext = () => {
+          if (idx >= appState.currentSentence.length) {
+            stripCards.forEach(c => c.classList.remove("highlight"));
+            return;
+          }
+
+          stripCards.forEach(c => c.classList.remove("highlight"));
+          if (stripCards[idx]) stripCards[idx].classList.add("highlight");
+
+          const card = appState.currentSentence[idx];
+          idx++;
+
+          this.playCardSound(card, () => {
+            setTimeout(speakNext, tts.delay);
+          });
+        };
+
+        speakNext();
+      },
+
+      /* מודאלים ועריכת סמלים */
+      openModal(id) {
+        const m = document.getElementById(id);
+        if (m) m.classList.add("active");
+      },
+
+      closeModal(id) {
+        const m = document.getElementById(id);
+        if (m) m.classList.remove("active");
+      },
+
+      switchEditorTab(tab) {
+        document.getElementById("tabBtnLib").classList.toggle("active", tab === "library");
+        document.getElementById("tabBtnCustom").classList.toggle("active", tab === "custom");
+        document.getElementById("tabContentLibrary").style.display = tab === "library" ? "block" : "none";
+        document.getElementById("tabContentCustom").style.display = tab === "custom" ? "block" : "none";
+      },
+
+      openNewCardModal() {
+        document.getElementById("editingCardId").value = "";
+        document.getElementById("cardLabelHe").value = "";
+        document.getElementById("cardLabelEn").value = "";
+        document.getElementById("cardLabelEs").value = "";
+        document.getElementById("cardSpeechPronounce").value = "";
+        document.getElementById("cardCategorySelect").value = "noun";
+        document.getElementById("cardActionTypeSelect").value = "action";
+        document.getElementById("customEmojiInput").value = "⭐";
+        document.getElementById("cardIconType").value = "emoji";
+        document.getElementById("cardIconValue").value = "⭐";
+        document.getElementById("customImagePreview").style.display = "none";
+        
+        voiceRecorder.setInitial(null);
+        this.populateSubboardSelect();
+        this.toggleSubboardTargetSelect("action");
+        this.switchEditorTab("library");
+        this.searchOnlineLibrary("");
+        this.openModal("cardEditorModal");
+      },
+
+      editCard(cardId) {
+        const board = appState.getActiveBoard();
+        const card = board.cards.find(c => c.id === cardId);
+        if (!card) return;
+
+        document.getElementById("editingCardId").value = card.id;
+        document.getElementById("cardLabelHe").value = card.labelHe || "";
+        document.getElementById("cardLabelEn").value = card.labelEn || "";
+        document.getElementById("cardLabelEs").value = card.labelEs || "";
+        document.getElementById("cardSpeechPronounce").value = card.speechHe || "";
+        document.getElementById("cardCategorySelect").value = card.cat || "noun";
+        document.getElementById("cardActionTypeSelect").value = card.type || "action";
+        document.getElementById("cardIconType").value = card.iconType || "emoji";
+        document.getElementById("cardIconValue").value = card.iconValue || "⭐";
+
+        voiceRecorder.setInitial(card.audioData || null);
+
+        if (card.iconType === "image") {
+          document.getElementById("previewImgElement").src = card.iconValue;
+          document.getElementById("customImagePreview").style.display = "block";
+          this.switchEditorTab("custom");
+        } else {
+          document.getElementById("customEmojiInput").value = card.iconValue;
+          this.switchEditorTab("library");
+        }
+
+        this.populateSubboardSelect();
+        this.toggleSubboardTargetSelect(card.type || "action");
+        if (card.targetBoardId) {
+          document.getElementById("subboardTargetSelect").value = card.targetBoardId;
+        }
+
+        this.openModal("cardEditorModal");
+      },
+
+      deleteCard(cardId) {
+        if (!confirm("האם למחוק כרטיסייה זו מהלוח?")) return;
+        const board = appState.getActiveBoard();
+        board.cards = board.cards.filter(c => c.id !== cardId);
+        appState.saveLocally();
+        this.renderBoard();
+        this.showToast("הכרטיסייה הוסרה מהלוח 🗑️");
+      },
+
+      populateSubboardSelect() {
+        const sel = document.getElementById("subboardTargetSelect");
+        if (!sel) return;
+        sel.innerHTML = "";
+        const profile = appState.getActiveProfile();
+        Object.values(profile.boards).forEach(b => {
+          if (b.id !== appState.data.activeBoardId) {
+            const opt = document.createElement("option");
+            opt.value = b.id;
+            opt.textContent = `📁 ${b.titleHe}`;
+            sel.appendChild(opt);
+          }
+        });
+      },
+
+      toggleSubboardTargetSelect(type) {
+        const group = document.getElementById("subboardTargetGroup");
+        if (group) group.style.display = (type === "subboard") ? "block" : "none";
+      },
+
+      searchOnlineLibrary(query) {
+        const grid = document.getElementById("libraryResultsGrid");
+        if (!grid) return;
+        grid.innerHTML = "";
+
+        const q = query.trim().toLowerCase();
+        const filtered = (q === "") 
+          ? ONLINE_SYMBOL_LIBRARY_PRESETS 
+          : ONLINE_SYMBOL_LIBRARY_PRESETS.filter(item => 
+              item.labelHe.includes(q) || 
+              item.labelEn.toLowerCase().includes(q) || 
+              item.labelEs.toLowerCase().includes(q)
+            );
+
+        filtered.slice(0, 24).forEach(item => {
+          const card = document.createElement("div");
+          card.className = "library-item-card";
+          card.innerHTML = `
+            <span class="lib-emoji">${item.emoji}</span>
+            <span class="lib-text">${item.labelHe}</span>
+          `;
+          card.onclick = () => {
+            document.getElementById("cardLabelHe").value = item.labelHe;
+            document.getElementById("cardLabelEn").value = item.labelEn;
+            document.getElementById("cardLabelEs").value = item.labelEs;
+            document.getElementById("cardCategorySelect").value = item.cat;
+            document.getElementById("cardIconType").value = "emoji";
+            document.getElementById("cardIconValue").value = item.emoji;
+            soundFx.playClick();
+            ui.showToast(`נבחר סמל: ${item.labelHe} ✨`);
+          };
+          grid.appendChild(card);
+        });
+      },
+
+      handleCustomImageUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const dataUrl = event.target.result;
+          document.getElementById("cardIconType").value = "image";
+          document.getElementById("cardIconValue").value = dataUrl;
+          document.getElementById("previewImgElement").src = dataUrl;
+          document.getElementById("customImagePreview").style.display = "block";
+          soundFx.playClick();
+          ui.showToast("התמונה הועלתה בהצלחה! 🖼️");
+        };
+        reader.readAsDataURL(file);
+      },
+
+      saveCardFromEditor() {
+        const board = appState.getActiveBoard();
+        const editingId = document.getElementById("editingCardId").value;
+        const labelHe = document.getElementById("cardLabelHe").value.trim();
+        const labelEn = document.getElementById("cardLabelEn").value.trim() || labelHe;
+        const labelEs = document.getElementById("cardLabelEs").value.trim() || labelHe;
+        const speech = document.getElementById("cardSpeechPronounce").value.trim() || labelHe;
+        const category = document.getElementById("cardCategorySelect").value;
+        const type = document.getElementById("cardActionTypeSelect").value;
+        const subboardTarget = document.getElementById("subboardTargetSelect").value;
+        const audioData = document.getElementById("cardAudioData").value || null;
+
+        if (!labelHe) {
+          alert("נא להזין תווית לפחות בעברית.");
+          return;
+        }
+
+        let iconType = document.getElementById("cardIconType").value;
+        let iconValue = document.getElementById("cardIconValue").value;
+
+        const customEmoji = document.getElementById("customEmojiInput").value.trim();
+        if (customEmoji && iconType !== "image") {
+          iconType = "emoji";
+          iconValue = customEmoji;
+        }
+
+        if (editingId) {
+          const existing = board.cards.find(c => c.id === editingId);
+          if (existing) {
+            existing.labelHe = labelHe;
+            existing.labelEn = labelEn;
+            existing.labelEs = labelEs;
+            existing.speechHe = speech;
+            existing.cat = (type === "subboard") ? "folder" : category;
+            existing.type = type;
+            existing.targetBoardId = (type === "subboard") ? subboardTarget : null;
+            existing.iconType = iconType;
+            existing.iconValue = iconValue;
+            existing.audioData = audioData;
+          }
+        } else {
+          const newCard = {
+            id: `c_${Date.now()}`,
+            type: type,
+            targetBoardId: (type === "subboard") ? subboardTarget : null,
+            labelHe: labelHe,
+            labelEn: labelEn,
+            labelEs: labelEs,
+            speechHe: speech,
+            cat: (type === "subboard") ? "folder" : category,
+            iconType: iconType,
+            iconValue: iconValue,
+            audioData: audioData
+          };
+          board.cards.push(newCard);
+        }
+
+        appState.saveLocally();
+        this.renderBoard();
+        this.closeModal("cardEditorModal");
+        this.showToast(`הכרטיסייה "${labelHe}" נשמרה בהצלחה! ⭐`);
+      },
+
+      openNewSubboardModal() {
+        document.getElementById("subboardNameHe").value = "";
+        document.getElementById("subboardNameEn").value = "";
+        document.getElementById("subboardNameEs").value = "";
+        this.openModal("subboardModal");
+      },
+
+      saveNewSubboard() {
+        const nameHe = document.getElementById("subboardNameHe").value.trim();
+        const nameEn = document.getElementById("subboardNameEn").value.trim() || nameHe;
+        const nameEs = document.getElementById("subboardNameEs").value.trim() || nameHe;
+        const icon = document.getElementById("subboardIcon").value.trim() || "📁";
+
+        if (!nameHe) {
+          alert("נא להזין שם לתת-הלוח.");
+          return;
+        }
+
+        const profile = appState.getActiveProfile();
+        const subboardId = `board_${Date.now()}`;
+
+        profile.boards[subboardId] = {
+          id: subboardId,
+          parentBoardId: appState.data.activeBoardId,
+          titleHe: nameHe,
+          titleEn: nameEn,
+          titleEs: nameEs,
+          cards: []
+        };
+
+        const currentBoard = appState.getActiveBoard();
+        currentBoard.cards.push({
+          id: `card_link_${Date.now()}`,
+          type: "subboard",
+          targetBoardId: subboardId,
+          labelHe: nameHe,
+          labelEn: nameEn,
+          labelEs: nameEs,
+          speechHe: nameHe,
+          cat: "folder",
+          iconType: "emoji",
+          iconValue: icon
+        });
+
+        appState.saveLocally();
+        this.renderBoard();
+        this.closeModal("subboardModal");
+        this.showToast(`תת-הלוח "${nameHe}" נוצר בהצלחה! 📁`);
+      },
+
+      saveNewProfile() {
+        const name = document.getElementById("newProfileNameInput").value.trim();
+        const avatar = document.getElementById("newProfileAvatarInput").value.trim() || "🧒";
+        if (!name) return;
+
+        const newProfId = `prof_${Date.now()}`;
+        const newProf = {
+          id: newProfId,
+          name: name,
+          avatar: avatar,
+          boards: JSON.parse(JSON.stringify(DEFAULT_APP_DATA.profiles[0].boards))
+        };
+
+        appState.data.profiles.push(newProf);
+        appState.data.activeProfileId = newProfId;
+        appState.data.activeBoardId = "board_main";
+        appState.saveLocally();
+        this.renderProfileSelect();
+        this.renderBoard();
+        this.closeModal("newProfileModal");
+        this.showToast(`הפרופיל "${name}" הוקם בהצלחה! 👤`);
+      },
+
+      showToast(msg) {
+        const toast = document.getElementById("aacToastNotice");
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.style.transform = "translateX(-50%) translateY(0px)";
+        setTimeout(() => {
+          toast.style.transform = "translateX(-50%) translateY(120px)";
+        }, 3200);
+      }
+    };
+
+    window.addEventListener("DOMContentLoaded", () => {
+      ui.init();
+    });
+  </script>
+</body>
+</html>

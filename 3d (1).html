@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>קול ומבט - לוח תקשורת תומכת 3D</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;700;800;900&family=Heebo:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* צבעי מפתח פיצג'רלד (Fitzgerald Key) מותאמים */
+      --fitz-social: #f368e0;       /* ורוד - חברתי, שאלות, מילות נימוס */
+      --fitz-verb: #10ac84;         /* ירוק - פעלים, פעולות */
+      --fitz-noun: #ff9f43;         /* כתום - שמות עצם, אוכל, חפצים */
+      --fitz-adjective: #2e86de;    /* כחול - תיאורים, תחושות */
+      --fitz-person: #feca57;       /* צהוב - אנשים, כינויי גוף */
+      --fitz-place: #5f27cd;        /* סגול - מקומות, פנאי */
+
+      /* צבעי רקע וממשק */
+      --bg-main: #f0f4f8;
+      --card-bg: #ffffff;
+      --text-main: #222f3e;
+      --text-muted: #576574;
+      --border-radius-card: 20px;
+      --shadow-3d: 0 10px 0 rgba(0, 0, 0, 0.12), 0 12px 24px rgba(0, 0, 0, 0.08);
+      --shadow-3d-active: 0 2px 0 rgba(0, 0, 0, 0.12), 0 3px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Rubik', 'Heebo', sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      direction: rtl;
+    }
+
+    /* פס עליון */
+    header {
+      background: #ffffff;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      font-size: 2rem;
+      background: linear-gradient(135deg, #ff9f43, #ee5253);
+      border-radius: 14px;
+      padding: 6px 10px;
+      color: white;
+      box-shadow: 0 4px 10px rgba(238, 82, 83, 0.3);
+    }
+
+    .brand h1 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #222f3e;
+      letter-spacing: -0.5px;
+    }
+
+    .brand span {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: block;
+      font-weight: 500;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn-tool {
+      background: #ffffff;
+      border: 2px solid #c8d6e5;
+      padding: 9px 16px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #222f3e;
+      box-shadow: 0 3px 0 #8395a7;
+      transition: all 0.1s ease;
+    }
+
+    .btn-tool:active {
+      transform: translateY(3px);
+      box-shadow: 0 0 0 #8395a7;
+    }
+
+    .btn-tool.accent {
+      background: #0abde3;
+      border-color: #0abde3;
+      color: white;
+      box-shadow: 0 4px 0 #079992;
+    }
+
+    /* רצועת המשפט (Sentence Strip) */
+    .sentence-strip-container {
+      background: #ffffff;
+      margin: 16px 20px 8px 20px;
+      padding: 16px;
+      border-radius: 24px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.06), inset 0 2px 4px rgba(0,0,0,0.02);
+      border: 3px solid #dfe6e9;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .sentence-strip-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .strip-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #576574;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sentence-strip-cards {
+      min-height: 125px;
+      background: #f8fafc;
+      border-radius: 18px;
+      border: 2px dashed #b2bec3;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+    }
+
+    .sentence-strip-cards:empty::before {
+      content: "לחצו על כרטיסיות כדי לבנות משפט, או הקלידו טקסט לפענוח ויזואלי...";
+      color: #8395a7;
+      font-weight: 600;
+      font-size: 1.05rem;
+      margin: auto;
+    }
+
+    .strip-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .text-display-box {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #10ac84;
+      background: #e8f8f5;
+      padding: 8px 18px;
+      border-radius: 14px;
+      border: 2px solid #a3e4d7;
+      min-height: 46px;
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .strip-action-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-strip {
+      padding: 12px 22px;
+      border-radius: 16px;
+      font-size: 1.15rem;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.1s ease;
+    }
+
+    .btn-speak {
+      background: #10ac84;
+      color: white;
+      box-shadow: 0 5px 0 #0b785d;
+    }
+
+    .btn-speak:active {
+      transform: translateY(5px);
+      box-shadow: none;
+    }
+
+    .btn-clear {
+      background: #ee5253;
+      color: white;
+      box-shadow: 0 5px 0 #c0392b;
+    }
+
+    .btn-clear:active {
+      transform: translateY(5px);
+      box-shadow: none;
+    }
+
+    .btn-backspace {
+      background: #ff9f43;
+      color: white;
+      box-shadow: 0 5px 0 #e67e22;
+    }
+
+    .btn-backspace:active {
+      transform: translateY(5px);
+      box-shadow: none;
+    }
+
+    /* מודול המרת טקסט למשפט ויזואלי (טקסט -> תמונות) */
+    .text-decoder-bar {
+      margin: 4px 20px 12px 20px;
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 10px 16px;
+      border: 2px solid #c8d6e5;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    }
+
+    .text-decoder-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-family: inherit;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #222f3e;
+      background: transparent;
+    }
+
+    .btn-decode {
+      background: #5f27cd;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #341f97;
+    }
+
+    .btn-decode:active {
+      transform: translateY(3px);
+      box-shadow: none;
+    }
+
+    /* סינון קטגוריות */
+    .categories-bar {
+      margin: 0 20px 12px 20px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+    }
+
+    .category-chip {
+      background: #ffffff;
+      border: 2px solid #dcdde1;
+      padding: 8px 18px;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #576574;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      box-shadow: 0 3px 0 #c8d6e5;
+      transition: all 0.15s ease;
+    }
+
+    .category-chip.active {
+      background: #222f3e;
+      color: #ffffff;
+      border-color: #222f3e;
+      box-shadow: 0 3px 0 #101924;
+      transform: translateY(-2px);
+    }
+
+    /* רשת הכרטיסיות (AAC 3D GRID) */
+    .cards-grid-container {
+      flex: 1;
+      padding: 0 20px 24px 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+      gap: 16px;
+      align-content: start;
+    }
+
+    /* כרטיסייה תלת-ממדית מוחשית (Tactile 3D Claymorphic Card) */
+    .aac-card {
+      position: relative;
+      background: #ffffff;
+      border-radius: var(--border-radius-card);
+      border: 3px solid;
+      padding: 14px 10px 12px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      box-shadow: var(--shadow-3d);
+      transition: transform 0.08s ease, box-shadow 0.08s ease;
+      touch-action: manipulation;
+      min-height: 140px;
+      overflow: hidden;
+    }
+
+    /* צבעי קטגוריות לפי פיצג'רלד */
+    .aac-card.cat-person { border-color: var(--fitz-person); background: linear-gradient(180deg, #fffcf0 0%, #ffffff 100%); }
+    .aac-card.cat-verb { border-color: var(--fitz-verb); background: linear-gradient(180deg, #f0fbf7 0%, #ffffff 100%); }
+    .aac-card.cat-noun { border-color: var(--fitz-noun); background: linear-gradient(180deg, #fff7ed 0%, #ffffff 100%); }
+    .aac-card.cat-adj { border-color: var(--fitz-adjective); background: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%); }
+    .aac-card.cat-social { border-color: var(--fitz-social); background: linear-gradient(180deg, #fff0fa 0%, #ffffff 100%); }
+    .aac-card.cat-place { border-color: var(--fitz-place); background: linear-gradient(180deg, #f7f1ff 0%, #ffffff 100%); }
+
+    /* תחושת מגע תלת ממדית - לחיצה מוחשית */
+    .aac-card:active, .aac-card.pressing {
+      transform: translateY(8px);
+      box-shadow: var(--shadow-3d-active);
+    }
+
+    .aac-card.highlight {
+      outline: 4px solid #ff3838;
+      transform: scale(1.04);
+      z-index: 10;
+    }
+
+    /* תמונה/איור 3D בתוך הכרטיס */
+    .card-visual {
+      width: 76px;
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 6px;
+      filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.15));
+      transition: transform 0.1s ease;
+    }
+
+    .card-visual svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .card-visual .emoji-3d {
+      font-size: 3.4rem;
+      line-height: 1;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+    }
+
+    .card-label {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #222f3e;
+      text-align: center;
+      line-height: 1.1;
+      width: 100%;
+      word-break: break-word;
+    }
+
+    /* כרטיס ברצועת המשפט */
+    .sentence-strip-cards .aac-card {
+      min-height: 100px;
+      width: 100px;
+      flex-shrink: 0;
+      padding: 8px 6px;
+      border-radius: 16px;
+      box-shadow: 0 5px 0 rgba(0,0,0,0.1), 0 6px 12px rgba(0,0,0,0.06);
+    }
+
+    .sentence-strip-cards .aac-card .card-visual {
+      width: 52px;
+      height: 52px;
+      margin-bottom: 4px;
+    }
+
+    .sentence-strip-cards .aac-card .card-visual .emoji-3d {
+      font-size: 2.3rem;
+    }
+
+    .sentence-strip-cards .aac-card .card-label {
+      font-size: 0.95rem;
+    }
+
+    /* חלוניות מודאל (Modal Dialogs) */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(34, 47, 62, 0.7);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-window {
+      background: #ffffff;
+      border-radius: 28px;
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      border: 4px solid #c8d6e5;
+      animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-header {
+      background: #f8fafc;
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .modal-header h3 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #222f3e;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-close {
+      background: #ee5253;
+      color: white;
+      border: none;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      font-weight: 800;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 0 #c0392b;
+    }
+
+    .btn-close:active {
+      transform: translateY(3px);
+      box-shadow: none;
+    }
+
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group label {
+      font-weight: 700;
+      color: #222f3e;
+      font-size: 0.95rem;
+    }
+
+    .form-input, .form-select {
+      font-family: inherit;
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 2px solid #cbd5e1;
+      font-size: 1.05rem;
+      font-weight: 600;
+      outline: none;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: #0abde3;
+      box-shadow: 0 0 0 4px rgba(10, 189, 227, 0.15);
+    }
+
+    .btn-submit {
+      background: #10ac84;
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 16px;
+      font-size: 1.15rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #0b785d;
+      margin-top: 10px;
+    }
+
+    .btn-submit:active {
+      transform: translateY(4px);
+      box-shadow: none;
+    }
+
+    /* לוח שיתוף למורים */
+    .sharing-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .share-card {
+      background: #f1f5f9;
+      padding: 16px;
+      border-radius: 18px;
+      border: 2px solid #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .share-card:hover {
+      background: #e2e8f0;
+      transform: translateY(-2px);
+    }
+
+    .share-card-icon {
+      font-size: 2.2rem;
+    }
+
+    .share-card h4 {
+      font-weight: 800;
+      font-size: 1.05rem;
+      color: #1e293b;
+    }
+
+    .share-card p {
+      font-size: 0.85rem;
+      color: #64748b;
+      line-height: 1.3;
+    }
+
+    /* פונקציית הדפסה ללוחות תקשורת ו-PECS */
+    @media print {
+      header, .sentence-strip-container, .text-decoder-bar, .categories-bar, .modal-overlay {
+        display: none !important;
+      }
+
+      body {
+        background: white !important;
+      }
+
+      .cards-grid-container {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 12px !important;
+        padding: 0 !important;
+      }
+
+      .aac-card {
+        box-shadow: none !important;
+        border: 2px solid #000 !important;
+        page-break-inside: avoid;
+        min-height: 130px;
+      }
+
+      .aac-card::after {
+        content: "✂ קו גזירה";
+        position: absolute;
+        top: 2px;
+        right: 4px;
+        font-size: 9px;
+        color: #718096;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- תפריט ראשי וניווט -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🗣️</div>
+      <div>
+        <h1>קול ומבט • תקשורת תומכת</h1>
+        <span>תקשורת, העשרת שפה ופענוח ויזואלי ב-3D</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn-tool" onclick="openVoiceSettingsModal()" title="הגדרות קול והקראה">
+        <span>🎧</span> מהירות וקול
+      </button>
+      <button class="btn-tool accent" onclick="openShareModal()">
+        <span>🔗</span> שיתוף ויצוא
+      </button>
+      <button class="btn-tool" onclick="openCardEditorModal()">
+        <span>➕</span> הוספת מילה
+      </button>
+      <button class="btn-tool" onclick="window.print()">
+        <span>🖨️</span> הדפסת כרטיסיות
+      </button>
+    </div>
+  </header>
+
+  <!-- רצועת המשפט (Sentence Strip) -->
+  <section class="sentence-strip-container">
+    <div class="sentence-strip-header">
+      <div class="strip-title">
+        <span>🧩</span> רצועת המשפט הפעיל
+      </div>
+      <div class="strip-action-buttons">
+        <button class="btn-strip btn-speak" onclick="speakSentence()">
+          <span>🔊</span> השמע משפט
+        </button>
+        <button class="btn-strip btn-backspace" onclick="removeLastCard()">
+          <span>↩️</span> מחק אחרון
+        </button>
+        <button class="btn-strip btn-clear" onclick="clearSentenceStrip()">
+          <span>🗑️</span> נקה הכל
+        </button>
+      </div>
+    </div>
+
+    <!-- תיבת הכרטיסיות שנבחרו -->
+    <div class="sentence-strip-cards" id="sentenceStrip"></div>
+
+    <!-- תצוגת הטקסט המפוענח של המשפט -->
+    <div class="strip-controls">
+      <div class="text-display-box" id="sentenceTextDisplay">משפט: (ריק)</div>
+    </div>
+  </section>
+
+  <!-- פענוח טקסט למשפט ויזואלי (הקלדה חופשית לפירוק למילים ותמונות) -->
+  <section class="text-decoder-bar">
+    <span>✍️</span>
+    <input 
+      type="text" 
+      id="textDecoderInput" 
+      class="text-decoder-input" 
+      placeholder="הקלידו משפט בעברית (למשל: אני רוצה לשתות מים קרים) לפענוח מיידי בתמונות..."
+      onkeydown="if(event.key === 'Enter') decodeTextToBoard()"
+    >
+    <button class="btn-decode" onclick="decodeTextToBoard()">פענח לכרטיסיות</button>
+  </section>
+
+  <!-- סרגל קטגוריות לפי מפתח פיצג'רלד -->
+  <nav class="categories-bar" id="categoryNav">
+    <button class="category-chip active" onclick="filterCategory('all', this)">✨ כָּל הַכַּרְטִיסִיּוֹת</button>
+    <button class="category-chip" onclick="filterCategory('person', this)">🟡 אֲנָשִׁים וְגוּף</button>
+    <button class="category-chip" onclick="filterCategory('verb', this)">🟢 פְּעֻלּוֹת וּפְעָלִים</button>
+    <button class="category-chip" onclick="filterCategory('noun', this)">🟠 אֹכֶל וַחֲפָצִים</button>
+    <button class="category-chip" onclick="filterCategory('adj', this)">🔵 רְגָשׁוֹת וְתֵאוּרִים</button>
+    <button class="category-chip" onclick="filterCategory('place', this)">🟣 מְקוֹמוֹת וּפְנַאי</button>
+    <button class="category-chip" onclick="filterCategory('social', this)">🌸 מִלִּים חֶבְרָתִיּוֹת</button>
+  </nav>
+
+  <!-- לוח תקשורת ראשי: כרטיסיות מוחשיות ב-3D -->
+  <main class="cards-grid-container" id="cardsGrid"></main>
+
+  <!-- מודאל: הגדרות שמע, מהירות ורכות הקול -->
+  <div class="modal-overlay" id="voiceModal">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3><span>🎧</span> התאמת קול, רכות וקצב דיבור</h3>
+        <button class="btn-close" onclick="closeModal('voiceModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.95rem; color: #576574; line-height: 1.5;">
+          התאמת קול אישית מותאמת לילדים על הרצף: קצב איטי ומרווח יותר מפחית עומס תפיסתי, וקול רך ומאוזן נשמע טבעי ומרגיע.
+        </p>
+
+        <div class="form-group">
+          <label id="voiceSelectLabel">קול הקראה זמין במכשיר:</label>
+          <select id="voiceSelect" class="form-select" onchange="previewVoiceSample()"></select>
+        </div>
+
+        <div class="form-group">
+          <label>קצב דיבור (מהירות): <span id="rateVal" style="color:#10ac84; font-weight:800;">0.72×</span></label>
+          <input type="range" id="speechRate" min="0.45" max="1.1" step="0.05" value="0.72" class="form-input" style="padding:0; accent-color:#10ac84;" oninput="updateVoiceSettingsUI()">
+          <span style="font-size:0.8rem; color:#8395a7;">מומלץ קצב מתון (0.65 - 0.75) להקניית שפה נוחה וברורה.</span>
+        </div>
+
+        <div class="form-group">
+          <label>טון / רכות הצליל (Pitch): <span id="pitchVal" style="color:#0abde3; font-weight:800;">0.95</span></label>
+          <input type="range" id="speechPitch" min="0.7" max="1.3" step="0.05" value="0.95" class="form-input" style="padding:0; accent-color:#0abde3;" oninput="updateVoiceSettingsUI()">
+          <span style="font-size:0.8rem; color:#8395a7;">טון מעט נמוך (0.90 - 1.0) מעניק תחושה חמה ומונע צליל מתכתי גבוה.</span>
+        </div>
+
+        <div class="form-group">
+          <label>מרווח בין מילים במשפט: <span id="delayVal" style="color:#5f27cd; font-weight:800;">380 מ״ש</span></label>
+          <input type="range" id="wordDelay" min="150" max="800" step="50" value="380" class="form-input" style="padding:0; accent-color:#5f27cd;" oninput="updateVoiceSettingsUI()">
+          <span style="font-size:0.8rem; color:#8395a7;">מרווח נשימה המאפשר לילד לעבד כל מילה בנפרד.</span>
+        </div>
+
+        <button class="btn-submit" onclick="previewVoiceSample()">🔊 השמעת בדיקה של הקול</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- מודאל: הוספת כרטיסייה חדשה למורה/הורה -->
+  <div class="modal-overlay" id="editorModal">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3><span>➕</span> הוֹסָפַת מִלָּה מְנֻקֶּדֶת לַלּוּחַ</h3>
+        <button class="btn-close" onclick="closeModal('editorModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- בחירה מתוך מאגר מילים מנוקד עשיר -->
+        <div class="form-group" style="background: #eef2f7; padding: 14px; border-radius: 16px; border: 2px solid #cbd5e1;">
+          <label style="color: #1e293b; font-weight: 800; display:flex; align-items:center; justify-content:space-between;">
+            <span>📚 בְּחִירָה מֵהַמַּאֲגָר הַתִּקְנִי הַמְּנֻקָּד:</span>
+            <span style="font-size: 0.8rem; color: #576574; font-weight: 600;">חיפוש אוטומטי מהיר</span>
+          </label>
+          <input 
+            type="text" 
+            id="presetSearchInput" 
+            class="form-input" 
+            placeholder="הַקְלִידוּ לְחִפּוּשׂ (לְמָשָׁל: בַּמְבָּה, כַּדּוּר, לְחַבֵּק, סָבְתָא, עֲיֵפָה...)"
+            oninput="searchPresetDatabase(this.value)"
+            style="background: #fff; margin-top: 6px;"
+          >
+          <div id="presetResultsList" style="max-height: 150px; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;"></div>
+        </div>
+
+        <div class="form-group">
+          <label>מִלָּה מְנֻקֶּדֶת (תּוּצַג עַל הַכַּרְטִיסִיָּה):</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="newWordLabel" class="form-input" style="flex:1;" placeholder="לְמָשָׁל: תַּפּוּחַ, לָלֶכֶת, כּוֹאֵב...">
+            <button type="button" class="btn-tool" style="padding: 0 12px; font-size: 0.85rem;" onclick="autoVowelizeInput()" title="התאמת ניקוד אוטומטית לפי מילון">
+              ✨ נַקֵּד לִי
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>קָטֶגוֹרְיָה דִּקְדּוּקִית (פִיצְגֶ'רַלְד):</label>
+          <select id="newWordCategory" class="form-select">
+            <option value="verb">🟢 יָרֹק - פֹּעַל / פְּעֻלָּה</option>
+            <option value="noun">🟠 כָּתֹם - שֵׁם עֶצֶם / אֹכֶל / חֵפֶץ</option>
+            <option value="person">🟡 צָהֹב - כִּנּוּי גּוּף / אֲנָשִׁים</option>
+            <option value="adj">🔵 כָּחֹל - רֶגֶשׁ / תֵּאוּר</option>
+            <option value="social">🌸 וָרֹד - מִלָּה חֶבְרָתִית / נִימוּס</option>
+            <option value="place">🟣 סָגֹל - מָקוֹם / חֶדֶר</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>אִימוֹגִ'י 3D אוֹ סֵמֶל וִיזוּאָלִי:</label>
+          <input type="text" id="newWordEmoji" class="form-input" placeholder="הַדְבִּיקוּ אִימוֹגִ'י, לְמָשָׁל: 🥨, 🍎, 🧸">
+        </div>
+
+        <div class="form-group">
+          <label>הֲגִיָּה קוֹלִית מְנֻקֶּדֶת לַהַקְרָאָה:</label>
+          <input type="text" id="newWordPronounce" class="form-input" placeholder="נִקּוּד מְדֻיָּק לְהַשְׁמָעָה (רְשׁוּת)">
+        </div>
+
+        <button class="btn-submit" onclick="saveNewCard()">שְׁמֹר כַּרְטִיסִיָּה מְנֻקֶּדֶת לַלּוּחַ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- מודאל: שיתוף לוחות למורים, ייבוא וייצוא OBF/JSON -->
+  <div class="modal-overlay" id="shareModal">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3><span>🔗</span> שיתוף לוח תקשורת בין מורים והורים</h3>
+        <button class="btn-close" onclick="closeModal('shareModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.95rem; color: #576574; line-height: 1.5;">
+          כל הנתונים נשמרים אופליין במכשירכם. תוכלו לשתף את הלוח עם מורים, מטפלים והורים ללא צורך בהתקנות או שרת.
+        </p>
+        
+        <div class="sharing-grid">
+          <div class="share-card" onclick="shareViaUrlLink()">
+            <div class="share-card-icon">📲</div>
+            <h4>קישור שיתוף ישיר</h4>
+            <p>מעתיק קישור מוכן לוואטסאפ או למייל עם כל השינויים שלכם.</p>
+          </div>
+
+          <div class="share-card" onclick="exportBoardJSON()">
+            <div class="share-card-icon">💾</div>
+            <h4>גיבוי קובץ לוח (JSON)</h4>
+            <p>שמירת קובץ הלוח למחשב או לטאבלט לגיבוי מלא.</p>
+          </div>
+
+          <div class="share-card" onclick="document.getElementById('importFileInput').click()">
+            <div class="share-card-icon">📂</div>
+            <h4>טעינת לוח מקובץ</h4>
+            <p>פתיחת לוח שנשלח ממורה או מטפל אחר.</p>
+            <input type="file" id="importFileInput" style="display: none;" accept=".json,.obf" onchange="importBoardJSON(event)">
+          </div>
+
+          <div class="share-card" onclick="exportToOBF()">
+            <div class="share-card-icon">🌐</div>
+            <h4>יצוא תקן OBF</h4>
+            <p>Open Board Format - תואם ליישומי AAC עולמיים (Cboard, CoughDrop).</p>
+          </div>
+        </div>
+
+        <button class="btn-tool" style="justify-content: center; width: 100%; margin-top: 10px;" onclick="resetToDefaultBoard()">
+          🔄 איפוס ללוח ברירת המחדל
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- מודאל הודעות ואישור מעוצב ללא שימוש ב-alert/confirm -->
+  <div class="modal-overlay" id="feedbackDialogModal">
+    <div class="modal-window" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 id="feedbackDialogTitle"><span>💬</span> הודעת מערכת</h3>
+        <button class="btn-close" onclick="closeFeedbackDialog()">✕</button>
+      </div>
+      <div class="modal-body" style="gap: 14px; text-align: center;">
+        <p id="feedbackDialogMessage" style="font-size: 1.05rem; color: #222f3e; font-weight: 600; line-height: 1.5;"></p>
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 8px;">
+          <button id="feedbackDialogConfirmBtn" class="btn-submit" style="min-width: 110px; margin: 0; padding: 10px 18px;" onclick="handleFeedbackConfirm()">אישור</button>
+          <button id="feedbackDialogCancelBtn" class="btn-tool" style="display: none; min-width: 100px; justify-content: center;" onclick="closeFeedbackDialog()">ביטול</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- התראת Toast צפה ומהירה -->
+  <div id="aacToastNotice" style="position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(120px); background: #222f3e; color: #fff; padding: 12px 24px; border-radius: 16px; font-weight: 700; font-size: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.25); z-index: 2000; transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; border: 2px solid #0abde3;">
+    הודעה
+  </div>
+
+  <script>
+    /* ========================================================
+       מאגר כרטיסיות מנוקד תקני לפי כללי האקדמיה ועקרונות פיצג'רלד
+       ======================================================== */
+    const DEFAULT_AAC_CARDS = [
+      // כינויי גוף ואנשים (Yellow - Person)
+      { id: "c1", label: "אֲנִי", category: "person", emoji: "🧒", speech: "אֲנִי" },
+      { id: "c2", label: "אַתָּה", category: "person", emoji: "👉", speech: "אַתָּה" },
+      { id: "c2b", label: "אַתְּ", category: "person", emoji: "👧", speech: "אַתְּ" },
+      { id: "c3", label: "אִמָּא", category: "person", emoji: "👩", speech: "אִמָּא" },
+      { id: "c4", label: "אַבָּא", category: "person", emoji: "👨", speech: "אַבָּא" },
+      { id: "c5", label: "מוֹרָה", category: "person", emoji: "👩‍🏫", speech: "מוֹרָה" },
+      { id: "c6", label: "חָבֵר", category: "person", emoji: "🧑‍🤝‍🧑", speech: "חָבֵר" },
+      { id: "c6b", label: "סָבְתָא", category: "person", emoji: "👵", speech: "סָבְתָא" },
+      { id: "c6c", label: "סַבָּא", category: "person", emoji: "👴", speech: "סַבָּא" },
+      { id: "c6d", label: "אָח", category: "person", emoji: "👦", speech: "אָח" },
+      { id: "c6e", label: "אָחוֹת", category: "person", emoji: "👧", speech: "אָחוֹת" },
+
+      // פעלים ופעולות (Green - Verbs)
+      { id: "c7", label: "רוֹצֶה", category: "verb", emoji: "🤲", speech: "רוֹצֶה" },
+      { id: "c7b", label: "רוֹצָה", category: "verb", emoji: "🙋‍♀️", speech: "רוֹצָה" },
+      { id: "c8", label: "לֹא רוֹצֶה", category: "verb", emoji: "🙅‍♂️", speech: "לֹא רוֹצֶה" },
+      { id: "c8b", label: "לֹא רוֹצָה", category: "verb", emoji: "🙅‍♀️", speech: "לֹא רוֹצָה" },
+      { id: "c9", label: "לֶאֱכֹל", category: "verb", emoji: "🍽️", speech: "לֶאֱכֹל" },
+      { id: "c10", label: "לִשְׁתּוֹת", category: "verb", emoji: "🥤", speech: "לִשְׁתּוֹת" },
+      { id: "c11", label: "לָלֶכֶת", category: "verb", emoji: "🚶‍♂️", speech: "לָלֶכֶת" },
+      { id: "c12", label: "לְשַׂחֵק", category: "verb", emoji: "🎮", speech: "לְשַׂחֵק" },
+      { id: "c13", label: "לָנוּחַ", category: "verb", emoji: "🛌", speech: "לָנוּחַ" },
+      { id: "c14", label: "לַעֲזֹר", category: "verb", emoji: "🤝", speech: "לַעֲזֹר" },
+      { id: "c14b", label: "לְחַבֵּק", category: "verb", emoji: "🫂", speech: "לְחַבֵּק" },
+      { id: "c14c", label: "לָשֶׁבֶת", category: "verb", emoji: "🪑", speech: "לָשֶׁבֶת" },
+      { id: "c14d", label: "לָקוּם", category: "verb", emoji: "🧍‍♂️", speech: "לָקוּם" },
+      { id: "c14e", label: "לִפְתֹּחַ", category: "verb", emoji: "🚪", speech: "לִפְתֹּחַ" },
+      { id: "c14f", label: "לִסְגֹּר", category: "verb", emoji: "🔒", speech: "לִסְגֹּר" },
+      { id: "c15", label: "לִשְׁמֹעַ שִׁיר", category: "verb", emoji: "🎵", speech: "לִשְׁמֹעַ שִׁיר" },
+
+      // שמות עצם, אוכל וציוד (Orange - Nouns)
+      { id: "c16", label: "מַיִם", category: "noun", emoji: "💧", speech: "מַיִם" },
+      { id: "c17", label: "תַּפּוּחַ", category: "noun", emoji: "🍎", speech: "תַּפּוּחַ" },
+      { id: "c17b", label: "בָּנָנָה", category: "noun", emoji: "🍌", speech: "בָּנָנָה" },
+      { id: "c18", label: "לֶחֶם", category: "noun", emoji: "🍞", speech: "לֶחֶם" },
+      { id: "c19", label: "כָּרִיךְ", category: "noun", emoji: "🥪", speech: "כָּרִיךְ" },
+      { id: "c19b", label: "חֲטִיף", category: "noun", emoji: "🥨", speech: "חֲטִיף" },
+      { id: "c19c", label: "בַּמְבָּה", category: "noun", emoji: "🥜", speech: "בַּמְבָּה" },
+      { id: "c19d", label: "שׂוֹקוֹ", category: "noun", emoji: "🍫", speech: "שׁוֹקוֹ" },
+      { id: "c20", label: "כַּדּוּר", category: "noun", emoji: "⚽", speech: "כַּדּוּר" },
+      { id: "c21", label: "סֵפֶר", category: "noun", emoji: "📖", speech: "סֵפֶר" },
+      { id: "c22", label: "טַאבְּלֶט", category: "noun", emoji: "📱", speech: "טַאבְּלֶט" },
+      { id: "c22b", label: "מִשְׂחָק", category: "noun", emoji: "🎲", speech: "מִשְׂחָק" },
+      { id: "c22c", label: "בֻּבָּה", category: "noun", emoji: "🧸", speech: "בֻּבָּה" },
+      { id: "c22d", label: "מְכוֹנִית", category: "noun", emoji: "🚗", speech: "מְכוֹנִית" },
+      { id: "c23", label: "שֵׁירוּתִים", category: "noun", emoji: "🚽", speech: "שֵׁירוּתִים" },
+
+      // רגשות, תחושות ותיאורים (Blue - Adjectives/Feelings)
+      { id: "c24", label: "שָׂמֵחַ", category: "adj", emoji: "😊", speech: "שָׂמֵחַ" },
+      { id: "c24b", label: "שְׂמֵחָה", category: "adj", emoji: "😄", speech: "שְׂמֵחָה" },
+      { id: "c25", label: "עָצוּב", category: "adj", emoji: "😢", speech: "עָצוּב" },
+      { id: "c25b", label: "עֲצוּבָה", category: "adj", emoji: "🥺", speech: "עֲצוּבָה" },
+      { id: "c26", label: "עָיֵף", category: "adj", emoji: "🥱", speech: "עָיֵף" },
+      { id: "c26b", label: "עֲיֵפָה", category: "adj", emoji: "😴", speech: "עֲיֵפָה" },
+      { id: "c27", label: "כּוֹאֵב לִי", category: "adj", emoji: "🤕", speech: "כּוֹאֵב לִי" },
+      { id: "c28", label: "קַר לִי", category: "adj", emoji: "🥶", speech: "קַר לִי" },
+      { id: "c29", label: "חַם לִי", category: "adj", emoji: "🥵", speech: "חַם לִי" },
+      { id: "c30", label: "טָעִים", category: "adj", emoji: "😋", speech: "טָעִים" },
+      { id: "c30b", label: "יָפֶה", category: "adj", emoji: "🌸", speech: "יָפֶה" },
+      { id: "c30c", label: "גָּדוֹל", category: "adj", emoji: "🐘", speech: "גָּדוֹל" },
+      { id: "c30d", label: "קָטָן", category: "adj", emoji: "🐜", speech: "קָטָן" },
+      { id: "c31", label: "עוֹד", category: "adj", emoji: "➕", speech: "עוֹד" },
+      { id: "c32", label: "מַסְפִּיק", category: "adj", emoji: "🛑", speech: "מַסְפִּיק" },
+
+      // מקומות ופנאי (Purple - Places)
+      { id: "c33", label: "הַבַּיְתָה", category: "place", emoji: "🏠", speech: "הַבַּיְתָה" },
+      { id: "c34", label: "כִּתָּה", category: "place", emoji: "🏫", speech: "כִּתָּה" },
+      { id: "c35", label: "חָצֵר", category: "place", emoji: "🌳", speech: "חָצֵר" },
+      { id: "c36", label: "בְּרֵכָה", category: "place", emoji: "🏊‍♂️", speech: "בְּרֵכָה" },
+      { id: "c36b", label: "גִּנָּה", category: "place", emoji: "🌻", speech: "גִּנָּה" },
+      { id: "c36c", label: "חֶדֶר שַׁלְוָה", category: "place", emoji: "🧘‍♂️", speech: "חֶדֶר שַׁלְוָה" },
+
+      // מילות נימוס ותקשורת חברתית (Pink - Social)
+      { id: "c37", label: "שָׁלוֹם", category: "social", emoji: "👋", speech: "שָׁלוֹם" },
+      { id: "c38", label: "תּוֹדָה", category: "social", emoji: "🙏", speech: "תּוֹדָה" },
+      { id: "c39", label: "בְּבַקָּשָׁה", category: "social", emoji: "✨", speech: "בְּבַקָּשָׁה" },
+      { id: "c40", label: "כֵּן", category: "social", emoji: "👍", speech: "כֵּן" },
+      { id: "c41", label: "לֹא", category: "social", emoji: "👎", speech: "לֹא" },
+      { id: "c42", label: "סְלִיחָה", category: "social", emoji: "🙇‍♂️", speech: "סְלִיחָה" },
+      { id: "c43", label: "בֹּקֶר טוֹב", category: "social", emoji: "🌅", speech: "בֹּקֶר טוֹב" },
+      { id: "c44", label: "לַיְלָה טוֹב", category: "social", emoji: "🌙", speech: "לַיְלָה טוֹב" }
+    ];
+
+    /* ========================================================
+       מאגר מורחב של מילים מנוקדות לבחירה מהירה ולניקוד אוטומטי
+       ======================================================== */
+    const AAC_CANONICAL_PRESETS = [
+      // אוכל ושתייה
+      { label: "מַיִם", category: "noun", emoji: "💧", plain: "מים" },
+      { label: "מִיץ", category: "noun", emoji: "🧃", plain: "מיץ" },
+      { label: "חָלָב", category: "noun", emoji: "🥛", plain: "חלב" },
+      { label: "תַּפּוּחַ", category: "noun", emoji: "🍎", plain: "תפוח" },
+      { label: "בָּנָנָה", category: "noun", emoji: "🍌", plain: "בננה" },
+      { label: "לֶחֶם", category: "noun", emoji: "🍞", plain: "לחם" },
+      { label: "כָּרִיךְ", category: "noun", emoji: "🥪", plain: "כריך" },
+      { label: "בַּמְבָּה", category: "noun", emoji: "🥜", plain: "במבה" },
+      { label: "חֲטִיף", category: "noun", emoji: "🥨", plain: "חטיף" },
+      { label: "עוּגִיָּה", category: "noun", emoji: "🍪", plain: "עוגיה" },
+      { label: "שׂוֹקוֹ", category: "noun", emoji: "🍫", plain: "שוקו" },
+      { label: "גְּלִידָה", category: "noun", emoji: "🍨", plain: "גלידה" },
+      { label: "פִּיצָה", category: "noun", emoji: "🍕", plain: "פיצה" },
+      { label: "מָרָק", category: "noun", emoji: "🍲", plain: "מרק" },
+      { label: "אֹרֶז", category: "noun", emoji: "🍚", plain: "אורז" },
+
+      // פעלים ופעולות
+      { label: "רוֹצֶה", category: "verb", emoji: "🤲", plain: "רוצה" },
+      { label: "רוֹצָה", category: "verb", emoji: "🙋‍♀️️", plain: "רוצה" },
+      { label: "לֹא רוֹצֶה", category: "verb", emoji: "🙅‍♂️", plain: "לא רוצה" },
+      { label: "לֹא רוֹצָה", category: "verb", emoji: "🙅‍♀️", plain: "לא רוצה" },
+      { label: "לֶאֱכֹל", category: "verb", emoji: "🍽️", plain: "לאכול" },
+      { label: "לִשְׁתּוֹת", category: "verb", emoji: "🥤", plain: "לשתות" },
+      { label: "לְשַׂחֵק", category: "verb", emoji: "🎮", plain: "לשחק" },
+      { label: "לָלֶכֶת", category: "verb", emoji: "🚶‍♂️", plain: "ללכת" },
+      { label: "לָרוּץ", category: "verb", emoji: "🏃‍♂️", plain: "לרוץ" },
+      { label: "לָנוּחַ", category: "verb", emoji: "🛌", plain: "לנוח" },
+      { label: "לִישׁוֹן", category: "verb", emoji: "😴", plain: "לישון" },
+      { label: "לִרְאוֹת", category: "verb", emoji: "👀", plain: "לראות" },
+      { label: "לִשְׁמֹעַ", category: "verb", emoji: "👂", plain: "לשמוע" },
+      { label: "לְצַיֵּר", category: "verb", emoji: "🎨", plain: "לצייר" },
+      { label: "לִכְתֹּב", category: "verb", emoji: "✏️", plain: "לכתוב" },
+      { label: "לִקְרֹא", category: "verb", emoji: "📖", plain: "לקרוא" },
+      { label: "לַעֲזֹר", category: "verb", emoji: "🤝", plain: "לעזור" },
+      { label: "לְחַבֵּק", category: "verb", emoji: "🫂", plain: "לחבק" },
+      { label: "לִפְתֹּחַ", category: "verb", emoji: "🚪", plain: "לפתוח" },
+      { label: "לִסְגֹּר", category: "verb", emoji: "🔒", plain: "לסגור" },
+      { label: "לָשֶׁבֶת", category: "verb", emoji: "🪑", plain: "לשבת" },
+      { label: "לָקוּם", category: "verb", emoji: "🧍‍♂️", plain: "לקום" },
+
+      // אנשים ומשפחה
+      { label: "אֲנִי", category: "person", emoji: "🧒", plain: "אני" },
+      { label: "אַתָּה", category: "person", emoji: "👉", plain: "אתה" },
+      { label: "אַתְּ", category: "person", emoji: "👧", plain: "את" },
+      { label: "אִמָּא", category: "person", emoji: "👩", plain: "אמא" },
+      { label: "אַבָּא", category: "person", emoji: "👨", plain: "אבא" },
+      { label: "סָבְתָא", category: "person", emoji: "👵", plain: "סבתא" },
+      { label: "סַבָּא", category: "person", emoji: "👴", plain: "סבא" },
+      { label: "מוֹרָה", category: "person", emoji: "👩‍🏫", plain: "מורה" },
+      { label: "סַיַּעַת", category: "person", emoji: "🧑‍🏫", plain: "סייעת" },
+      { label: "חָבֵר", category: "person", emoji: "🧑‍🤝‍🧑", plain: "חבר" },
+      { label: "חֲבֵרָה", category: "person", emoji: "👭", plain: "חברה" },
+      { label: "רוֹפֵא", category: "person", emoji: "👨‍⚕️", plain: "רופא" },
+
+      // רגשות, תחושות ותיאורים
+      { label: "שָׂמֵחַ", category: "adj", emoji: "😊", plain: "שמח" },
+      { label: "שְׂמֵחָה", category: "adj", emoji: "😄", plain: "שמחה" },
+      { label: "עָצוּב", category: "adj", emoji: "😢", plain: "עצוב" },
+      { label: "עֲצוּבָה", category: "adj", emoji: "🥺", plain: "עצובה" },
+      { label: "עָיֵף", category: "adj", emoji: "🥱", plain: "עייף" },
+      { label: "עֲיֵפָה", category: "adj", emoji: "😴", plain: "עייפה" },
+      { label: "כּוֹאֵב לִי", category: "adj", emoji: "🤕", plain: "כואב לי" },
+      { label: "קַר לִי", category: "adj", emoji: "🥶", plain: "קר לי" },
+      { label: "חַם לִי", category: "adj", emoji: "🥵", plain: "חם לי" },
+      { label: "רָעֵב", category: "adj", emoji: "🤤", plain: "רעב" },
+      { label: "רְעֵבָה", category: "adj", emoji: "🥣", plain: "רעבה" },
+      { label: "צָמֵא", category: "adj", emoji: "🥤", plain: "צמא" },
+      { label: "צְמֵאָה", category: "adj", emoji: "💧", plain: "צמאה" },
+      { label: "טָעִים", category: "adj", emoji: "😋", plain: "טעים" },
+      { label: "יָפֶה", category: "adj", emoji: "🌸", plain: "יפה" },
+      { label: "גָּדוֹל", category: "adj", emoji: "🐘", plain: "גדול" },
+      { label: "קָטָן", category: "adj", emoji: "🐜", plain: "קטן" },
+      { label: "עוֹד", category: "adj", emoji: "➕", plain: "עוד" },
+      { label: "מַסְפִּיק", category: "adj", emoji: "🛑", plain: "מספיק" },
+
+      // מקומות
+      { label: "הַבַּיְתָה", category: "place", emoji: "🏠", plain: "הביתה" },
+      { label: "כִּתָּה", category: "place", emoji: "🏫", plain: "כיתה" },
+      { label: "חָצֵר", category: "place", emoji: "🌳", plain: "חצר" },
+      { label: "בְּרֵכָה", category: "place", emoji: "🏊‍♂️", plain: "בריכה" },
+      { label: "חֶדֶר שַׁלְוָה", category: "place", emoji: "🧘‍♂️", plain: "חדר שלווה" },
+      { label: "שֵׁירוּתִים", category: "place", emoji: "🚽", plain: "שירותים" },
+
+      // חברתי ונימוס
+      { label: "שָׁלוֹם", category: "social", emoji: "👋", plain: "שלום" },
+      { label: "תּוֹדָה", category: "social", emoji: "🙏", plain: "תודה" },
+      { label: "בְּבַקָּשָׁה", category: "social", emoji: "✨", plain: "בבקשה" },
+      { label: "סְלִיחָה", category: "social", emoji: "🙇‍♂️", plain: "סליחה" },
+      { label: "כֵּן", category: "social", emoji: "👍", plain: "כן" },
+      { label: "לֹא", category: "social", emoji: "👎", plain: "לא" },
+      { label: "בֹּקֶר טוֹב", category: "social", emoji: "🌅", plain: "בוקר טוב" },
+      { label: "לַיְלָה טוֹב", category: "social", emoji: "🌙", plain: "לילה טוב" }
+    ];
+
+    // פונקציית עזר להסרת ניקוד לצורך חיפוש והשוואה נקייה
+    function stripHebrewNikud(text) {
+      if (!text) return "";
+      return text.replace(/[\u0591-\u05C7]/g, "");
+    }
+
+    function searchPresetDatabase(query = "") {
+      const resultsContainer = document.getElementById("presetResultsList");
+      if (!resultsContainer) return;
+      resultsContainer.innerHTML = "";
+
+      const cleanQ = stripHebrewNikud(query.trim()).toLowerCase();
+
+      const matched = cleanQ === ""
+        ? AAC_CANONICAL_PRESETS.slice(0, 16)
+        : AAC_CANONICAL_PRESETS.filter(item => {
+            const plain = item.plain || stripHebrewNikud(item.label);
+            return plain.includes(cleanQ) || item.label.includes(cleanQ);
+          }).slice(0, 24);
+
+      matched.forEach(item => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `category-chip cat-${item.category}`;
+        btn.style.boxShadow = "0 2px 0 rgba(0,0,0,0.1)";
+        btn.style.fontSize = "0.95rem";
+        btn.innerHTML = `<span style="font-size:1.2rem;">${item.emoji}</span> <strong>${item.label}</strong>`;
+        btn.onclick = () => selectPresetWord(item);
+        resultsContainer.appendChild(btn);
+      });
+
+      if (matched.length === 0) {
+        resultsContainer.innerHTML = `<div style="font-size: 0.88rem; color: #8395a7; padding: 6px;">לֹא נִמְצְאָה מִלָּה תּוֹאֶמֶת בַּמַּאֲגָר. נִתָּן לְהַקְלִיד מִלָּה חָפְשִׁית וְלִלְחֹץ 'נַקֵּד לִי'.</div>`;
+      }
+    }
+
+    function selectPresetWord(item) {
+      document.getElementById("newWordLabel").value = item.label;
+      document.getElementById("newWordCategory").value = item.category;
+      document.getElementById("newWordEmoji").value = item.emoji;
+      document.getElementById("newWordPronounce").value = item.label;
+      playTactileFeedbackTone();
+      showToast(`נִבְחֲרָה מִלָּה מְנֻקֶּדֶת: ${item.label} ✨`);
+    }
+
+    function autoVowelizeInput() {
+      const labelInput = document.getElementById("newWordLabel");
+      const currentVal = labelInput.value.trim();
+      if (!currentVal) {
+        showToast("נָא לְהַקְלִיד מִלָּה תְּחִלָּה");
+        return;
+      }
+
+      const stripped = stripHebrewNikud(currentVal);
+      const found = AAC_CANONICAL_PRESETS.find(p => (p.plain === stripped || stripHebrewNikud(p.label) === stripped));
+
+      if (found) {
+        labelInput.value = found.label;
+        document.getElementById("newWordCategory").value = found.category;
+        document.getElementById("newWordEmoji").value = found.emoji;
+        document.getElementById("newWordPronounce").value = found.label;
+        playTactileFeedbackTone();
+        showToast(`נִמְצָא נִקּוּד תִּקְנִי: ${found.label} ✔`);
+      } else {
+        showFeedbackDialog(
+          "הַתְאָמַת נִקּוּד",
+          `הַמִּלָּה "${currentVal}" אֵינָהּ בַּמַּאֲגָר הַבָּסִיסִי. נִתָּן לְנַקֵּד יְדָנִית בַּשָּׂדֶה בְּאֶמְצָעוּת מִקְלֶדֶת עִבְרִית (Alt + מִקְשֵׁי הַמִּסְפָּרִים).`
+        );
+      }
+    }
+
+    function decodeTextToBoard() {
+      const input = document.getElementById("textDecoderInput");
+      const rawText = input.value.trim();
+      if (!rawText) return;
+
+      playTactileFeedbackTone();
+
+      const words = rawText.split(/\s+/);
+      currentSentence = [];
+
+      words.forEach((word, index) => {
+        const cleanWord = word.replace(/[.,?!]/g, "");
+        const strippedWord = stripHebrewNikud(cleanWord);
+
+        // 1. חיפוש בכרטיסיות הקיימות בלוח
+        let found = aacCards.find(c => {
+          return c.label === cleanWord || 
+                 stripHebrewNikud(c.label) === strippedWord || 
+                 stripHebrewNikud(c.speech) === strippedWord;
+        });
+
+        // 2. חיפוש במאגר המילים המנוקד הכללי אם טרם קיים בלוח
+        if (!found) {
+          const presetMatch = AAC_CANONICAL_PRESETS.find(p => p.plain === strippedWord || stripHebrewNikud(p.label) === strippedWord);
+          if (presetMatch) {
+            found = {
+              id: `preset_${Date.now()}_${index}`,
+              label: presetMatch.label,
+              category: presetMatch.category,
+              emoji: presetMatch.emoji,
+              speech: presetMatch.label
+            };
+          }
+        }
+
+        if (found) {
+          currentSentence.push(found);
+        } else {
+          // מילה חדשה לא מוכרת
+          const dynamicCard = {
+            id: `dyn_${Date.now()}_${index}`,
+            label: cleanWord,
+            category: "noun",
+            emoji: "✨",
+            speech: cleanWord
+          };
+          currentSentence.push(dynamicCard);
+        }
+      });
+
+      updateSentenceStripUI();
+      speakSentence();
+      input.value = "";
+    }
+
+    function openCardEditorModal() {
+      document.getElementById("editorModal").classList.add("active");
+      searchPresetDatabase("");
+    }
+
+    // --- אתחול משתנים גלובליים ---
+    let aacCards = [];
+    let currentSentence = [];
+    let activeCategory = "all";
+    let voiceConfig = { rate: 0.72, pitch: 0.95, wordDelay: 380, selectedVoiceUri: null };
+    let audioContext = null;
+    let speechSynth = window.speechSynthesis;
+    let confirmCallback = null;
+
+    // אתחול המערכת בעת טעינת העמוד
+    window.addEventListener("DOMContentLoaded", () => {
+      loadVoiceSettings();
+      loadBoardState();
+      renderBoardGrid();
+      
+      // בדיקה אם יש נתונים מקודדים בכתובת ה-URL (שיתוף ישיר)
+      checkUrlHashShare();
+    });
+
+    function showToast(message) {
+      const toast = document.getElementById("aacToastNotice");
+      if (!toast) return;
+      toast.textContent = message;
+      toast.style.transform = "translateX(-50%) translateY(0px)";
+      setTimeout(() => {
+        toast.style.transform = "translateX(-50%) translateY(120px)";
+      }, 3200);
+    }
+
+    function showFeedbackDialog(title, message, onConfirm = null, showCancel = false) {
+      document.getElementById("feedbackDialogTitle").innerHTML = `<span>💬</span> ${title}`;
+      document.getElementById("feedbackDialogMessage").textContent = message;
+      const cancelBtn = document.getElementById("feedbackDialogCancelBtn");
+      cancelBtn.style.display = showCancel ? "inline-flex" : "none";
+      confirmCallback = onConfirm;
+      document.getElementById("feedbackDialogModal").classList.add("active");
+    }
+
+    function closeFeedbackDialog() {
+      document.getElementById("feedbackDialogModal").classList.remove("active");
+      confirmCallback = null;
+    }
+
+    function handleFeedbackConfirm() {
+      const cb = confirmCallback;
+      closeFeedbackDialog();
+      if (typeof cb === "function") cb();
+    }
+
+    function loadVoiceSettings() {
+      const savedVoice = localStorage.getItem("aac_voice_config");
+      if (savedVoice) {
+        try {
+          voiceConfig = { ...voiceConfig, ...JSON.parse(savedVoice) };
+        } catch(e) {}
+      }
+    }
+
+    function saveVoiceSettings() {
+      localStorage.setItem("aac_voice_config", JSON.stringify(voiceConfig));
+    }
+
+    function loadBoardState() {
+      const saved = localStorage.getItem("aac_board_cards");
+      if (saved) {
+        try {
+          aacCards = JSON.parse(saved);
+        } catch (e) {
+          aacCards = [...DEFAULT_AAC_CARDS];
+        }
+      } else {
+        aacCards = [...DEFAULT_AAC_CARDS];
+      }
+    }
+
+    function saveBoardState() {
+      localStorage.setItem("aac_board_cards", JSON.stringify(aacCards));
+    }
+
+    function resetToDefaultBoard() {
+      showFeedbackDialog(
+        "איפוס לוח",
+        "האם לאפס את הלוח לברירת המחדל המקורית? כל המילים שנוספו באופן מותאם יוסרו.",
+        () => {
+          aacCards = [...DEFAULT_AAC_CARDS];
+          saveBoardState();
+          renderBoardGrid();
+          closeModal('shareModal');
+          showToast("הלוח אופס לברירת המחדל בהצלחה! 🔄");
+        },
+        true
+      );
+    }
+
+    function playTactileFeedbackTone() {
+      try {
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioContext.state === 'suspended') {
+          audioContext.resume();
+        }
+        
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        const filter = audioContext.createBiquadFilter();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(420, audioContext.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(560, audioContext.currentTime + 0.09);
+
+        // פילטר Low-Pass לרכות נעימה
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(900, audioContext.currentTime);
+
+        gain.gain.setValueAtTime(0.14, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.09);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioContext.destination);
+
+        osc.start();
+        osc.stop(audioContext.currentTime + 0.1);
+      } catch (e) {
+        // Fallback שקט
+      }
+    }
+
+    function getBestHebrewVoice() {
+      if (!speechSynth) return null;
+      const voices = speechSynth.getVoices();
+      if (!voices || voices.length === 0) return null;
+
+      if (voiceConfig.selectedVoiceUri) {
+        const found = voices.find(v => v.voiceURI === voiceConfig.selectedVoiceUri);
+        if (found) return found;
+      }
+
+      const hebrewVoices = voices.filter(v => v.lang.startsWith("he") || v.lang.includes("Hebrew") || v.lang.includes("IW"));
+
+      if (hebrewVoices.length > 0) {
+        const naturalVoice = hebrewVoices.find(v => 
+          v.name.toLowerCase().includes("natural") || 
+          v.name.toLowerCase().includes("premium") || 
+          v.name.toLowerCase().includes("enhanced") ||
+          v.name.toLowerCase().includes("google") ||
+          v.name.toLowerCase().includes("carmit") ||
+          v.name.toLowerCase().includes("siri")
+        );
+        return naturalVoice || hebrewVoices[0];
+      }
+
+      return null;
+    }
+
+    function populateVoiceList() {
+      const select = document.getElementById("voiceSelect");
+      if (!select || !speechSynth) return;
+
+      const voices = speechSynth.getVoices();
+      select.innerHTML = "";
+
+      const hebrewVoices = voices.filter(v => v.lang.startsWith("he") || v.lang.includes("Hebrew") || v.lang.includes("IW"));
+      const best = getBestHebrewVoice();
+
+      if (hebrewVoices.length > 0) {
+        hebrewVoices.forEach(voice => {
+          const opt = document.createElement("option");
+          opt.value = voice.voiceURI;
+          opt.textContent = `${voice.name} (${voice.lang})${voice.localService ? ' - קול מקומי/אופליין' : ''}`;
+          if (best && voice.voiceURI === best.voiceURI) opt.selected = true;
+          select.appendChild(opt);
+        });
+      } else {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "קול ברירת המחדל של המכשיר (עברית מותאמת)";
+        select.appendChild(opt);
+      }
+    }
+
+    function speakText(text, onComplete = null) {
+      if (!speechSynth) {
+        if (onComplete) onComplete();
+        return;
+      }
+
+      speechSynth.cancel();
+
+      const cleanText = text.replace(/[/_\\#*]/g, " ").trim();
+      if (!cleanText) {
+        if (onComplete) onComplete();
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.lang = "he-IL";
+      utterance.rate = voiceConfig.rate;
+      utterance.pitch = voiceConfig.pitch;
+
+      const voice = getBestHebrewVoice();
+      if (voice) {
+        utterance.voice = voice;
+      }
+
+      let completed = false;
+      function finalize() {
+        if (!completed) {
+          completed = true;
+          if (onComplete) onComplete();
+        }
+      }
+
+      utterance.onend = finalize;
+      utterance.onerror = finalize;
+
+      setTimeout(finalize, 4500);
+
+      speechSynth.speak(utterance);
+    }
+
+    function openVoiceSettingsModal() {
+      populateVoiceList();
+      document.getElementById("speechRate").value = voiceConfig.rate;
+      document.getElementById("speechPitch").value = voiceConfig.pitch;
+      document.getElementById("wordDelay").value = voiceConfig.wordDelay;
+      updateVoiceSettingsUI(false);
+      document.getElementById("voiceModal").classList.add("active");
+    }
+
+    function updateVoiceSettingsUI(save = true) {
+      const rate = parseFloat(document.getElementById("speechRate").value);
+      const pitch = parseFloat(document.getElementById("speechPitch").value);
+      const delay = parseInt(document.getElementById("wordDelay").value);
+      const voiceUri = document.getElementById("voiceSelect").value;
+
+      document.getElementById("rateVal").textContent = `${rate.toFixed(2)}×`;
+      document.getElementById("pitchVal").textContent = pitch.toFixed(2);
+      document.getElementById("delayVal").textContent = `${delay} מ״ש`;
+
+      voiceConfig.rate = rate;
+      voiceConfig.pitch = pitch;
+      voiceConfig.wordDelay = delay;
+      voiceConfig.selectedVoiceUri = voiceUri;
+
+      if (save) {
+        saveVoiceSettings();
+      }
+    }
+
+    function previewVoiceSample() {
+      updateVoiceSettingsUI(true);
+      speakText("אֲנִי רוֹצֶה לְשַׂחֵק בְּיַחַד");
+    }
+
+    function renderBoardGrid() {
+      const container = document.getElementById("cardsGrid");
+      container.innerHTML = "";
+
+      const filtered = (activeCategory === "all") 
+        ? aacCards 
+        : aacCards.filter(c => c.category === activeCategory);
+
+      filtered.forEach(card => {
+        const cardElem = createCardElement(card, false);
+        container.appendChild(cardElem);
+      });
+    }
+
+    function createCardElement(card, isSmall = false) {
+      const el = document.createElement("div");
+      el.className = `aac-card cat-${card.category}`;
+      el.dataset.id = card.id;
+
+      el.innerHTML = `
+        <div class="card-visual">
+          <span class="emoji-3d">${card.emoji || "💬"}</span>
+        </div>
+        <div class="card-label">${card.label}</div>
+      `;
+
+      el.addEventListener("click", () => {
+        playTactileFeedbackTone();
+        el.classList.add("pressing");
+        setTimeout(() => el.classList.remove("pressing"), 120);
+
+        if (!isSmall) {
+          speakText(card.speech || card.label);
+          addCardToSentence(card);
+        }
+      });
+
+      return el;
+    }
+
+    function filterCategory(category, buttonElement) {
+      activeCategory = category;
+      document.querySelectorAll(".category-chip").forEach(btn => btn.classList.remove("active"));
+      if (buttonElement) buttonElement.classList.add("active");
+      renderBoardGrid();
+    }
+
+    function addCardToSentence(card) {
+      currentSentence.push(card);
+      updateSentenceStripUI();
+
+      const strip = document.getElementById("sentenceStrip");
+      strip.scrollTo({ left: strip.scrollWidth, behavior: 'smooth' });
+    }
+
+    function removeLastCard() {
+      if (currentSentence.length > 0) {
+        playTactileFeedbackTone();
+        currentSentence.pop();
+        updateSentenceStripUI();
+      }
+    }
+
+    function clearSentenceStrip() {
+      if (currentSentence.length > 0) {
+        playTactileFeedbackTone();
+        currentSentence = [];
+        updateSentenceStripUI();
+      }
+    }
+
+    function updateSentenceStripUI() {
+      const strip = document.getElementById("sentenceStrip");
+      const textDisplay = document.getElementById("sentenceTextDisplay");
+
+      strip.innerHTML = "";
+
+      if (currentSentence.length === 0) {
+        textDisplay.textContent = "משפט: (ריק)";
+        return;
+      }
+
+      currentSentence.forEach((card, index) => {
+        const cardElem = createCardElement(card, true);
+        cardElem.dataset.stripIndex = index;
+        strip.appendChild(cardElem);
+      });
+
+      const fullSentenceText = currentSentence.map(c => c.label).join(" ");
+      textDisplay.textContent = `משפט: ${fullSentenceText}`;
+    }
+
+    function speakSentence() {
+      if (currentSentence.length === 0) return;
+
+      let idx = 0;
+      const stripElements = document.querySelectorAll("#sentenceStrip .aac-card");
+
+      function speakNextWord() {
+        if (idx >= currentSentence.length) {
+          stripElements.forEach(el => el.classList.remove("highlight"));
+          return;
+        }
+
+        stripElements.forEach(el => el.classList.remove("highlight"));
+        if (stripElements[idx]) {
+          stripElements[idx].classList.add("highlight");
+        }
+
+        const currentWord = currentSentence[idx];
+        idx++;
+
+        speakText(currentWord.speech || currentWord.label, () => {
+          setTimeout(speakNextWord, voiceConfig.wordDelay);
+        });
+      }
+
+      speakNextWord();
+    }
+
+    function openShareModal() {
+      document.getElementById("shareModal").classList.add("active");
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove("active");
+    }
+
+    function saveNewCard() {
+      const labelInput = document.getElementById("newWordLabel");
+      const categorySelect = document.getElementById("newWordCategory");
+      const emojiInput = document.getElementById("newWordEmoji");
+      const speechInput = document.getElementById("newWordPronounce");
+
+      const label = labelInput.value.trim();
+      if (!label) {
+        showFeedbackDialog("שדה חובה", "נא להזין מילה או טקסט עבור הכרטיסייה החדשה.");
+        return;
+      }
+
+      const newCard = {
+        id: `card_${Date.now()}`,
+        label: label,
+        category: categorySelect.value,
+        emoji: emojiInput.value.trim() || "⭐",
+        speech: speechInput.value.trim() || label
+      };
+
+      aacCards.push(newCard);
+      saveBoardState();
+      renderBoardGrid();
+
+      labelInput.value = "";
+      emojiInput.value = "";
+      speechInput.value = "";
+      closeModal("editorModal");
+      playTactileFeedbackTone();
+      showToast(`הכרטיסייה "${label}" נוספה בהצלחה! ⭐`);
+    }
+
+    function shareViaUrlLink() {
+      try {
+        const serialized = JSON.stringify(aacCards);
+        const encoded = encodeURIComponent(btoa(unescape(encodeURIComponent(serialized))));
+        const shareUrl = `${window.location.origin}${window.location.pathname}#board=${encoded}`;
+
+        if (document.queryCommandSupported && document.queryCommandSupported('copy')) {
+          const tempInput = document.createElement("textarea");
+          tempInput.value = shareUrl;
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          document.execCommand('copy');
+          document.body.removeChild(tempInput);
+          showFeedbackDialog("קישור הועתק! 📋", "הקישור לשיתוף הועתק ללוח. תוכלו להדביק אותו בוואטסאפ או במייל כדי לפתוח את הלוח בכל מכשיר.");
+        } else {
+          showFeedbackDialog("קישור ישיר לשיתוף", shareUrl);
+        }
+      } catch (err) {
+        showFeedbackDialog("שגיאה", "לא ניתן היה ליצור קישור שיתוף עבור הלוח הנוכחי.");
+      }
+    }
+
+    function checkUrlHashShare() {
+      if (window.location.hash.startsWith("#board=")) {
+        try {
+          const encoded = window.location.hash.replace("#board=", "");
+          const decoded = decodeURIComponent(escape(atob(decodeURIComponent(encoded))));
+          const imported = JSON.parse(decoded);
+          if (Array.isArray(imported) && imported.length > 0) {
+            showFeedbackDialog(
+              "לוח משותף זוהה",
+              "נמצא לוח תקשורת משותף בקישור! האם ברצונכם לטעון אותו ולהחליף את הלוח הנוכחי?",
+              () => {
+                aacCards = imported;
+                saveBoardState();
+                renderBoardGrid();
+                window.location.hash = "";
+                showToast("הלוח המשותף נטען בהצלחה! 🌟");
+              },
+              true
+            );
+          }
+        } catch(e) {
+          console.error("שגיאה בטעינת לוח מקישור:", e);
+        }
+      }
+    }
+
+    function exportBoardJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(aacCards, null, 2));
+      const downloadAnchor = document.createElement("a");
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `לוח_תקשורת_קול_ומבט_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast("קובץ הלוח הורד בהצלחה 💾");
+    }
+
+    function importBoardJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (Array.isArray(imported)) {
+            aacCards = imported;
+          } else if (imported.buttons) {
+            aacCards = imported.buttons.map((b, i) => ({
+              id: b.id || `obf_${i}`,
+              label: b.label || "",
+              category: "noun",
+              emoji: b.emoji || "💬",
+              speech: b.vocalization || b.label || ""
+            }));
+          }
+          saveBoardState();
+          renderBoardGrid();
+          closeModal("shareModal");
+          showToast("הלוח נטען בהצלחה מלאה! 📂");
+        } catch(err) {
+          showFeedbackDialog("שגיאה בטעינה", "ודאו שזהו קובץ JSON או OBF תקין.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function exportToOBF() {
+      const obfFormat = {
+        format: "open-board-0.1",
+        id: "kol_umabat_board_1",
+        locale: "he",
+        name: "קול ומבט - לוח תקשורת תומכת",
+        grid: {
+          rows: Math.ceil(aacCards.length / 4),
+          columns: 4,
+          order: [aacCards.map(c => c.id)]
+        },
+        buttons: aacCards.map(c => ({
+          id: c.id,
+          label: c.label,
+          vocalization: c.speech || c.label,
+          emoji: c.emoji
+        }))
+      };
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(obfFormat, null, 2));
+      const downloadAnchor = document.createElement("a");
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `communication_board.obf`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast("לוח בפורמט OBF יוצא בהצלחה 🌐");
+    }
+  </script>
+</body>
+</html>
