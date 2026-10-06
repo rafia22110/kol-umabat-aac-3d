@@ -1,5 +1,12 @@
 # קול ומבט • פלטפורמת תקשורת תומכת וחליפית (AAC 3D)
 
+[![Vercel Deployment](https://img.shields.io/badge/Vercel-Live_App-black?logo=vercel)](https://kol-umabat-aac-3d.vercel.app/)
+[![GitHub Repository](https://img.shields.io/badge/GitHub-rafia22110%2Fkol--umabat--aac--3d-blue?logo=github)](https://github.com/rafia22110/kol-umabat-aac-3d)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+> **קישור לאפליקציה החיה:** [https://kol-umabat-aac-3d.vercel.app](https://kol-umabat-aac-3d.vercel.app)  
+> **קישור למאגר ה-GitHub הרשמי:** [https://github.com/rafia22110/kol-umabat-aac-3d](https://github.com/rafia22110/kol-umabat-aac-3d)
+
 מערכת תקשורת תומכת וחליפית (Augmentative and Alternative Communication) מתקדמת, המבוססת על טכנולוגיית Web מודרנית, עיצוב תלת-ממדי מוחשי (Claymorphism 3D), תמיכה במצב עבודה מוגן (**Me Mode**) לצד ניהול פרופילים מלא (**Profiles Mode**), **הקלטת אודיו אישית של מילים למאגר**, **מנוע אודיו-לטקסט (דיבור לפענוח כרטיסיות ויזואליות)**, סנכרון ענן בזמן אמת, והתאמה רב-לשונית מלאה (עברית, אנגלית, ספרדית).
 
 ---
